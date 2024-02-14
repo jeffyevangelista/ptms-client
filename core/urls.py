@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.conf import settings  
 from django.conf.urls.static import static 
 from django.urls import path,include
-from user.views import login_user,dashboard
+from user.views import LoginAPIView,dashboard
 urlpatterns = [
     path('admin/', admin.site.urls),
      path('api/', include([
@@ -28,7 +28,7 @@ urlpatterns = [
         path('allocation_list/', include('allocation.urls')),
     ])),
 
-        path('login_user/', login_user, name='login_user'),
+        path('api/login/', LoginAPIView.as_view(), name='login'),
         path('dashboard/', dashboard, name='dashboard'),
         
 ]

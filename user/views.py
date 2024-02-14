@@ -2,8 +2,10 @@ from django.shortcuts import render, redirect
 from rest_framework.viewsets import ModelViewSet
 from .serializers import user_Serializer
 from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
-
+from .serializers import LoginSerializer
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
 #api for crud
 class User_view(ModelViewSet):
     serializer_class = user_Serializer
@@ -12,18 +14,22 @@ class User_view(ModelViewSet):
         return self.serializer_class.Meta.model.objects.all()
     
 
-def login_user(request):
-    if request.method == "POST":
-        email = request.POST["email"]
-        password = request.POST["password"]
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'User login Successfully.')
-            return redirect('dashboard')
+class LoginAPIView(APIView):
+    def post(self, request, *args, **kwargs):
+        serializer = LoginSerializer(data=request.data)
+        if serializer.is_valid():
+            email = serializer.validated_data['email']
+            password = serializer.validated_data['password']
+
+            user = authenticate(request, email=email, password=password)
+            if user is not None:
+                login(request, user)
+                return Response({'message': 'User login successful.'}, status=status.HTTP_200_OK)
+            else:
+                return Response({'error': 'Email or Password not found.'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
-            messages.warning(request, 'Email or Password not found.')
-    return render(request, 'login.html')
+            return Response({'error': 'Invalid data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+
 
 def dashboard(request):
     return render(request, 'dashboard.html')
