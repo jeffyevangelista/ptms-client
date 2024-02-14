@@ -1,0 +1,35 @@
+<!-- base.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Default Title{% endblock %}</title>
+    <!-- Additional common CSS and JavaScript links go here -->
+</head>
+<body>
+
+    <header>
+        <h1>{% block header %}My Website{% endblock %}</h1>
+        <!-- Additional common header content goes here -->
+    </header>
+
+    <nav>
+        <!-- Common navigation menu goes here -->
+    </nav>
+
+    <main>
+        {% block content %}
+        <p>try lang ni</p>
+        {% endblock %}
+    </main>
+
+    <footer>
+        <!-- Common footer content goes here -->
+    </footer>
+
+    <!-- Additional common scripts and closing tags go here -->
+
+</body>
+</html>
