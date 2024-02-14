@@ -7,7 +7,7 @@ class BusinessUnit(models.Model):
     fund = models.ForeignKey(Fund,on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.business_unit_name
+        return f'{self.business_unit_name} - {self.fund}'
     
 class UserCompanyRelationship(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='user_BusinessUnit_relationships')
