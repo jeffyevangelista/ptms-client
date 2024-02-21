@@ -6,6 +6,8 @@ from .serializers import LoginSerializer
 from rest_framework import status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.authtoken.models import Token
+from rest_framework.decorators import api_view
 #api for crud
 class User_view(ModelViewSet):
     serializer_class = user_Serializer
@@ -24,12 +26,21 @@ class LoginAPIView(APIView):
             user = authenticate(request, email=email, password=password)
             if user is not None:
                 login(request, user)
-                return Response({'message': 'User login successful.'}, status=status.HTTP_200_OK)
+
+                token, created = Token.objects.get_or_create(user=user)
+
+                return Response({
+                    'message': 'User login successful.',
+                    'token': token.key,
+                    'role': user.role 
+                }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Email or Password not found.'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
             return Response({'error': 'Invalid data provided.'}, status=status.HTTP_400_BAD_REQUEST)
+        
 
-
-def dashboard(request):
-    return render(request, 'dashboard.html')
+@api_view(['GET'])
+def current_user(request):
+    serializer = user_Serializer(request.user) 
+    return Response(serializer.data)

@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
 from django.contrib.auth.models import Group, Permission
+from businessUnit.models import BusinessUnit
 class UserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
@@ -25,14 +26,17 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True)
 
     ROLES = [
-        ('encoder', 'Encoder'),
-        ('cost_controller', 'Cost Controller'),
-        ('manager', 'Manager'),
-        ('custodian', 'Custodian'),
+        ('Encoder', 'Encoder'),
+        ('Cost Controller', 'Cost Controller'),
+        ('General Manager', 'General Manager'),
+        ('Custodian', 'Custodian'),
+        ('Admin', 'Admin'),
     ]
 
-    role = models.CharField(max_length=20, choices=ROLES, default='encoder')
+    role = models.CharField(max_length=20, choices=ROLES, default='Admin')
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.SET_NULL, null=True) # many to many relationship// if the user is custodian null the company
     is_staff = models.BooleanField(default=False)
+    active = models.BooleanField(default=True)
 
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['first_name', 'last_name']
