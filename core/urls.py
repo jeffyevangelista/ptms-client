@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static 
 from django.urls import path,include
 from user.views import LoginAPIView,current_user
-from forms.views import LatestVoucherView,create_request_form
+from forms.views import LatestVoucherView,create_request_form,FormListAPIView
 urlpatterns = [
     path('admin/', admin.site.urls),
      path('api/', include([
@@ -35,6 +35,8 @@ urlpatterns = [
 
         path('api/latest_voucher/', LatestVoucherView.as_view(), name='latest_voucher'),
         path('api/create_request_form/', create_request_form, name='create_request_form'),
+        path('api/form_filtered_list/', FormListAPIView.as_view(), name='FormListAPIView'),
+    
         
         
 ]

@@ -8,6 +8,8 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
+from rest_framework.authtoken.models import Token
+
 #api for crud
 class User_view(ModelViewSet):
     serializer_class = user_Serializer
@@ -32,7 +34,13 @@ class LoginAPIView(APIView):
                 return Response({
                     'message': 'User login successful.',
                     'token': token.key,
-                    'role': user.role 
+                    'role': user.role, 
+                    'first_name': user.first_name,
+                    'last_name': user.last_name,
+                    'email': user.email,
+                    'id': user.id,
+                    'business_unit': user.business_unit,
+                    
                 }, status=status.HTTP_200_OK)
             else:
                 return Response({'error': 'Email or Password not found.'}, status=status.HTTP_401_UNAUTHORIZED)
