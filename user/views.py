@@ -9,6 +9,8 @@ from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
+from django.core.serializers.json import DjangoJSONEncoder
+from django.http import JsonResponse
 
 #api for crud
 class User_view(ModelViewSet):
@@ -31,17 +33,24 @@ class LoginAPIView(APIView):
 
                 token, created = Token.objects.get_or_create(user=user)
 
-                return Response({
+                response_data = {
                     'message': 'User login successful.',
                     'token': token.key,
-                    'role': user.role, 
+                    'role': user.role,
                     'first_name': user.first_name,
                     'last_name': user.last_name,
                     'email': user.email,
                     'id': user.id,
-                    'business_unit': user.business_unit,
-                    
-                }, status=status.HTTP_200_OK)
+                }
+
+                if user.business_unit:
+                    response_data['business_unit'] = {
+                        'id': user.business_unit.id,
+                    }
+                else:
+                    response_data['business_unit'] = None
+
+                return JsonResponse(response_data, status=status.HTTP_200_OK, encoder=DjangoJSONEncoder)
             else:
                 return Response({'error': 'Email or Password not found.'}, status=status.HTTP_401_UNAUTHORIZED)
         else:
