@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-56)rq-g028f)iv%*1rvm4&t!@3v%##x2pi4dnwwqr%+i!8z#+m
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -63,6 +63,7 @@ MIDDLEWARE = [
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ],
 }
 
@@ -71,7 +72,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS':  [],
+        'DIRS':  [BASE_DIR, 'template'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -149,3 +150,5 @@ CORS_ALLOWED_ORIGINS = [
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOW_CREDENTIALS = True

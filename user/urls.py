@@ -18,6 +18,8 @@ urlpatterns = [
     ])),
 
     path('api/login/', LoginAPIView.as_view(), name='login'),
-     path('api/current_user/', views.current_user, name='current_user'),
+    path('api/current_user/', views.current_user, name='current_user'),
+
+    path('login_user/', views.login_user, name='login_user'),
 
 ]

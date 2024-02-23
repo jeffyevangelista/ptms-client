@@ -11,7 +11,7 @@ from rest_framework.decorators import api_view
 from rest_framework.authtoken.models import Token
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
-
+from django.contrib import messages
 #api for crud
 class User_view(ModelViewSet):
     serializer_class = user_Serializer
@@ -28,7 +28,9 @@ class LoginAPIView(APIView):
             password = serializer.validated_data['password']
 
             user = authenticate(request, email=email, password=password)
+            print(f"User: {user}")
             if user is not None:
+                print("User is authenticated and logging in.")
                 login(request, user)
 
                 token, created = Token.objects.get_or_create(user=user)
@@ -61,3 +63,16 @@ class LoginAPIView(APIView):
 def current_user(request):
     serializer = user_Serializer(request.user) 
     return Response(serializer.data)
+
+def login_user(request):
+    if request.method == "POST":
+        email = request.POST["email"]
+        password = request.POST["password"]
+        user = authenticate(request, email=email, password=password)
+        if user is not None:
+            login(request, user)
+            messages.success(request, 'User login Successfully.')
+            return redirect('dashboard')
+        else:
+            messages.warning(request, 'Email or Password not found.')
+    return render(request, 'User/login.html')

@@ -2,7 +2,7 @@ from django.urls import path,include
 from . import views
 
 from .views import (
-    Allocation_view
+    Allocation_view,create_fund_allocation
 )
 
 urlpatterns = [
@@ -16,4 +16,6 @@ urlpatterns = [
             'delete': 'destroy',
         })),
     ])),
+
+    path('api/create_fund_allocation/', create_fund_allocation, name='create_fund_allocation'),
 ]

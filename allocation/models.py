@@ -9,3 +9,4 @@ class Allocation(models.Model):
 
     def __str__(self):
        return f'{self.business_unit.business_unit_name} Allocation'
+    

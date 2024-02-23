@@ -1,8 +1,7 @@
 from django.urls import path,include
-from . import views
 
 from .views import (
-    Fund_view
+    Fund_view,FundListView
 )
 
 urlpatterns = [
@@ -16,4 +15,6 @@ urlpatterns = [
             'delete': 'destroy',
         })),
     ])),
+
+    path('api/FundListView/', FundListView.as_view(), name='FundListView'),
 ]
