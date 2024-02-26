@@ -33,5 +33,6 @@ class RequestForm_Serializer(serializers.ModelSerializer):
                 'reviewer_name',
                 'approved',
                 'release',
+                'fund_allocation',
 
         )

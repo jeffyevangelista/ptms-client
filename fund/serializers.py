@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Fund
+from .models import Fund, BusinessUnitInFund
 
 
 class fund_Serializer(serializers.ModelSerializer):
@@ -16,5 +16,21 @@ class fund_Serializer(serializers.ModelSerializer):
             'last_name',
 
         )
-            
+
+class businessUnitInFund_Serializer(serializers.ModelSerializer):
+    name =  serializers.CharField(source='fund_name.name', read_only=True)
+    business_name = serializers.SerializerMethodField('get_business_unit_names')
+    def get_business_unit_names(self, instance):
+        business_units = instance.business_units.all()
+        business_unit_names = [bu.business_unit_name for bu in business_units]
+        return business_unit_names
+    class Meta:
+        model = BusinessUnitInFund
+        fields = (
+            'id',
+            'fund_name',
+            'business_units',
+            'business_name',
+            'name',
+        ) 
     

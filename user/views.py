@@ -63,16 +63,3 @@ class LoginAPIView(APIView):
 def current_user(request):
     serializer = user_Serializer(request.user) 
     return Response(serializer.data)
-
-def login_user(request):
-    if request.method == "POST":
-        email = request.POST["email"]
-        password = request.POST["password"]
-        user = authenticate(request, email=email, password=password)
-        if user is not None:
-            login(request, user)
-            messages.success(request, 'User login Successfully.')
-            return redirect('dashboard')
-        else:
-            messages.warning(request, 'Email or Password not found.')
-    return render(request, 'User/login.html')
