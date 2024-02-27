@@ -32,7 +32,7 @@ class RequestForm(models.Model):
     quantity = models.IntegerField()
     uom = models.CharField(max_length=50)
     price = models.IntegerField()
-    amount = models.IntegerField()
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     encoded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='encoder' ,null=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cost_controller' ,null=True)

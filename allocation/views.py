@@ -70,6 +70,7 @@ class Allocation_List_Per_BU_View(APIView):
 
                 for allocation in allocations:
                     business_unit_data = {
+                        'id': allocation.id,
                         'business_unit_name': allocation.business_unit.business_unit_name,
                         'allocated_amount': allocation.amount
                     }
