@@ -19,6 +19,15 @@ class RequestForm(models.Model):
             new_code = f"PR-00000"
 
         return new_code
+    
+    STATUS_CHOICES = [
+        ('Pending', 'Pending'),
+        ('Approved', 'Approved'),
+        ('Released', 'Released'),
+        ('Liquidated', 'Liquidated'),
+        ('Declined', 'Declined'),
+    ]
+
     voucher_no = models.CharField(max_length=15,default=generate_reference_code, unique=True)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
     fund_allocation = models.ForeignKey(Allocation, on_delete=models.CASCADE, default=None)
@@ -33,6 +42,7 @@ class RequestForm(models.Model):
     uom = models.CharField(max_length=50)
     price = models.IntegerField()
     amount = models.DecimalField(max_digits=15, decimal_places=2)
+    status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='Pending',null=True)
 
     encoded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='encoder' ,null=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cost_controller' ,null=True)
@@ -41,19 +51,6 @@ class RequestForm(models.Model):
 
     def __str__(self):
         return str(self.voucher_no)
-    
-    def deduct_amount_from_allocation(self):
-        print(f"Allocation ID:, Allocation amount: {self.fund_allocation.amount}, Requested amount: {self.amount}")
-        if self.fund_allocation.amount < self.amount:
-            raise ValidationError("Insufficient allocated funds.")
-        self.fund_allocation.amount -= self.amount
-        self.fund_allocation.save()
-
-    @transaction.atomic
-    def save(self, *args, **kwargs):
-        print(f"After deduction - Allocation amount: {self.fund_allocation.amount}, Requested amount: {self.amount}")
-        self.deduct_amount_from_allocation()
-        super().save(*args, **kwargs)
     
 
 

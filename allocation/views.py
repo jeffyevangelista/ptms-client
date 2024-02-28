@@ -1,16 +1,14 @@
-from django.shortcuts import render
+
 from rest_framework.viewsets import ModelViewSet
 from .serializers import allocation_Serializer
-from django.http import JsonResponse
 from fund.models import Fund
 from django.db import transaction
 from .models import Allocation
 from rest_framework.views import APIView
-from django.middleware.csrf import get_token
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
 from rest_framework import status
-
+from rest_framework.decorators import api_view
 
 class Allocation_view(ModelViewSet):
     serializer_class = allocation_Serializer
@@ -20,23 +18,25 @@ class Allocation_view(ModelViewSet):
     
 
 
-
+@api_view(['POST'])
 @transaction.atomic
 def create_fund_allocation(request):
     if request.method == 'POST':
-        allocation_data = request.POST 
-        allocation = Allocation.objects.create(
-            name_id=allocation_data['name'],
-            business_unit_id=allocation_data['business_unit'],
-            amount=allocation_data['amount']
-        )
-        fund = Fund.objects.get(id=allocation_data['name'])
-        fund.amount -= allocation.amount
-        fund.save()
+        serializer = allocation_Serializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            business_unit = serializer.validated_data['business_unit']
+            amount = serializer.validated_data['amount']
 
-        return JsonResponse({'message': 'Fund Allocation created successfully'}, status=201)
+            fund_instance = Fund.objects.get(pk=name.id)
+            fund_instance.amount -= amount
+            fund_instance.save()
 
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+            Allocation.objects.create(name=name, business_unit=business_unit, amount=amount)
+
+            return Response({'message': 'Fund Allocation created successfully'}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 class AllocationListView(APIView):

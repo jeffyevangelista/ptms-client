@@ -10,20 +10,3 @@ class Allocation(models.Model):
 
     def __str__(self):
        return f'{self.business_unit.business_unit_name} Allocation'
-    
-    def deduct_amount_from_fund(self):
-        print(f"Allocation ID: {self.id}, Allocation amount: {self.name.amount}, Requested amount: {self.amount}")
-    
-        if self.name.amount == 0:
-            print("Fund amount is already zero. Skipping deduction.")
-            return
-
-        if self.name.amount < self.amount:
-            raise ValidationError("Insufficient funds.")
-
-        self.name.amount -= self.amount
-        self.name.save()
-
-    def save(self, *args, **kwargs):
-        self.deduct_amount_from_fund()
-        super().save(*args, **kwargs)

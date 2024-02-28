@@ -24,6 +24,7 @@ class RequestForm_Serializer(serializers.ModelSerializer):
                 'price',
                 'amount',
                 'business_unit',
+                'status',
                 'encoded_by',
                 'reviewed_by',
                 'approved_by',
@@ -34,5 +35,6 @@ class RequestForm_Serializer(serializers.ModelSerializer):
                 'approved',
                 'release',
                 'fund_allocation',
+
 
         )

@@ -1,7 +1,7 @@
 from django.urls import path,include
 
 from .views import (
-    Fund_view,FundListView,BusinessUnitInFund_view,Fund_Comapny_View
+    Fund_view,FundListView,BusinessUnitInFund_view,Fund_Comapny_View,ReturnFund_view
 )
 
 urlpatterns = [
@@ -20,6 +20,15 @@ urlpatterns = [
             'post': 'create',
         })),
         path('BusinessToFund/<int:pk>/', BusinessUnitInFund_view.as_view({
+            'put': 'update',
+            'delete': 'destroy',
+        })),
+
+        path('ReturnFund/', ReturnFund_view.as_view({
+            'get': 'list',
+            'post': 'create',
+        })),
+        path('ReturnFund/<int:pk>/', ReturnFund_view.as_view({
             'put': 'update',
             'delete': 'destroy',
         })),

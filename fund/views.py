@@ -1,16 +1,13 @@
-from django.shortcuts import render
+
 from rest_framework.viewsets import ModelViewSet
-from .serializers import fund_Serializer, businessUnitInFund_Serializer
-from rest_framework.permissions import IsAuthenticated
+from .serializers import fund_Serializer, businessUnitInFund_Serializer, ReturnFund_Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from .models import Fund
-from django.http import JsonResponse
 from django.middleware.csrf import get_token
 from rest_framework.authtoken.models import Token
 from .models import BusinessUnitInFund
-from rest_framework.authentication import TokenAuthentication
 
 #api for crud
 class Fund_view(ModelViewSet):
@@ -26,7 +23,13 @@ class BusinessUnitInFund_view(ModelViewSet):
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
     
+class ReturnFund_view(ModelViewSet):
+    serializer_class = ReturnFund_Serializer
 
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.all()
+    
+#Filter funds based on the user assigned in it
 class FundListView(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
@@ -40,7 +43,8 @@ class FundListView(APIView):
         else:
             print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
-        
+
+#Filter business unit based on the fund
 class Fund_Comapny_View(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]

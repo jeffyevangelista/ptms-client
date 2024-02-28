@@ -19,7 +19,7 @@ from django.conf import settings
 from django.conf.urls.static import static 
 from django.urls import path,include
 from user.views import LoginAPIView,current_user
-from forms.views import LatestVoucherView, PurchaseRequestListView,PurchaseRequest_Reviewer_List_View, PurchaseRequest_GeneralManager_List_View, Cost_Controller_Release_View,Cost_Controller_To_Be_Release_View
+from forms.views import LatestVoucherView, PurchaseRequestListView,PurchaseRequest_Reviewer_List_View, PurchaseRequest_GeneralManager_List_View, Cost_Controller_Release_View,Cost_Controller_To_Be_Release_View,create_request_form
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View
 urlpatterns = [
@@ -37,6 +37,7 @@ urlpatterns = [
         path('api/current_user/', current_user, name='current_user'),
 
         #Purchase Request
+        path('api/create_request_form/', create_request_form, name='create_request_form'),
         path('api/latest_voucher/', LatestVoucherView.as_view(), name='latest_voucher'),
         path('api/PurchaseRequestListView/', PurchaseRequestListView.as_view(), name='PurchaseRequestListView'),
         path('api/PurchaseRequest_Reviewer_List_View/', PurchaseRequest_Reviewer_List_View.as_view(), name='PurchaseRequest_Reviewer_List_View'),

@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Fund, BusinessUnitInFund
+from .models import Fund, BusinessUnitInFund , Return_fund
 
 
 class fund_Serializer(serializers.ModelSerializer):
@@ -31,6 +31,17 @@ class businessUnitInFund_Serializer(serializers.ModelSerializer):
             'fund_name',
             'business_units',
             'business_name',
+            'name',
+        ) 
+    
+class ReturnFund_Serializer(serializers.ModelSerializer):
+    name =  serializers.CharField(source='fund_name.name', read_only=True)
+    class Meta:
+        model = Return_fund
+        fields = (
+            'id',
+            'fund_name',
+            'amount',
             'name',
         ) 
     

@@ -13,6 +13,8 @@ from django.middleware.csrf import get_token
 from rest_framework.authtoken.models import Token
 from fund.models import Fund, BusinessUnitInFund
 from allocation.models import Allocation
+from django.db import transaction
+
 class RequestForm_view(ModelViewSet):
     serializer_class = RequestForm_Serializer
 
@@ -25,7 +27,27 @@ class LatestVoucherView(View):
         latest_voucher = RequestForm.objects.order_by('-id').first()
         latest_voucher_number = latest_voucher.voucher_no if latest_voucher else None
         return JsonResponse({'latest_voucher_number': latest_voucher_number})
-    
+
+@api_view(['POST'])
+@transaction.atomic
+def create_request_form(request):
+    if request.method == 'POST':
+        serializer = RequestForm_Serializer(data=request.data)
+        if serializer.is_valid():
+            request_form = serializer.save()
+
+            print(f"RequestForm created: {request_form}")
+            if request_form.fund_allocation:
+                allocation = request_form.fund_allocation
+                print(f"Original Allocation Amount: {allocation.amount}")
+                allocation.amount -= request_form.amount
+                print(f"New Allocation Amount: {allocation.amount}")
+                allocation.save()
+
+            return Response({'message': 'RequestForm created successfully'}, status=status.HTTP_201_CREATED)
+
+        print(f"Serializer Errors: {serializer.errors}")
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 class PurchaseRequestListView(APIView):
     def get(self, request, *args, **kwargs):
@@ -102,7 +124,7 @@ class Cost_Controller_To_Be_Release_View(APIView):
                 fund_allocation__in=allocations,
                 business_unit__in=business_units_in_funds.values('business_units'),
                 approved_by__isnull=False,
-                release_by__isnull=False
+                release_by__isnull=True
             )
 
             serializer = RequestForm_Serializer(request_form, many=True)
@@ -127,7 +149,8 @@ class Cost_Controller_Release_View(APIView):
                 fund_allocation__in=allocations,
                 business_unit__in=business_units_in_funds.values('business_units'),
                 approved_by__isnull=False,
-                release_by__isnull=True
+                release_by__isnull=False,
+                status='Released'
             )
 
             serializer = RequestForm_Serializer(request_form, many=True)
