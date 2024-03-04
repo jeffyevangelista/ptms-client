@@ -1,9 +1,9 @@
-from django.db import models, transaction
+from django.db import models
 from businessUnit.models import BusinessUnit
 from allocation.models import Allocation
 from user.models import User
 from django.utils import timezone
-from django.core.exceptions import ValidationError
+from fund.models import Fund
 
 class RequestForm(models.Model):
 
@@ -26,6 +26,7 @@ class RequestForm(models.Model):
         ('Released', 'Released'),
         ('Liquidated', 'Liquidated'),
         ('Declined', 'Declined'),
+        ('Replenish', 'Replenish'),
     ]
 
     voucher_no = models.CharField(max_length=15,default=generate_reference_code, unique=True)
@@ -37,10 +38,6 @@ class RequestForm(models.Model):
     covered_to = models.DateField()
     date_requested = models.DateField()
 
-    descriptions = models.CharField(max_length=50)
-    quantity = models.IntegerField()
-    uom = models.CharField(max_length=50)
-    price = models.IntegerField()
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='Pending',null=True)
 
@@ -49,8 +46,34 @@ class RequestForm(models.Model):
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='general_manager',null=True)
     release_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='custodian',null=True)
 
+    with_receipt = models.DecimalField(max_digits=15, decimal_places=2, default=None, null=True)
+    with_out_receipt = models.DecimalField(max_digits=15, decimal_places=2, default=None, null=True)
+
     def __str__(self):
         return str(self.voucher_no)
+    
+class Item(models.Model):
+    request_form = models.ForeignKey(RequestForm, related_name='items', on_delete=models.CASCADE)
+    descriptions = models.CharField(max_length=50)
+    quantity = models.IntegerField()
+    uom = models.CharField(max_length=50)
+    price = models.IntegerField()
+    
+class Refund(models.Model):
+    voucher_no = models.ForeignKey(RequestForm, on_delete=models.CASCADE)
+    refund_amount = models.DecimalField(max_digits=15, decimal_places=2)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+         return f'{self.voucher_no} - {self.refund_amount} '
+    
+class Excess(models.Model):
+    voucher_no = models.ForeignKey(RequestForm, on_delete=models.CASCADE)
+    excess_amount = models.DecimalField(max_digits=15, decimal_places=2)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+         return f'{self.voucher_no} - {self.excess_amount} '
     
 
 

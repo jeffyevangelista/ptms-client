@@ -16,6 +16,15 @@ class Allocation_view(ModelViewSet):
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
     
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        associated_fund = instance.name
+        associated_fund.amount += instance.amount
+        associated_fund.save()
+        self.perform_destroy(instance)
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
 
 
 @api_view(['POST'])
@@ -35,6 +44,43 @@ def create_fund_allocation(request):
             Allocation.objects.create(name=name, business_unit=business_unit, amount=amount)
 
             return Response({'message': 'Fund Allocation created successfully'}, status=status.HTTP_201_CREATED)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+
+
+@api_view(['PUT'])
+@transaction.atomic
+def edit_fund_allocation(request,fund_allocation_id):
+    if request.method == 'PUT':
+        serializer = allocation_Serializer(data=request.data)
+        if serializer.is_valid():
+            name = serializer.validated_data['name']
+            business_unit = serializer.validated_data['business_unit']
+            amount = serializer.validated_data['amount']
+
+            try:
+                fund_instance = Fund.objects.get(pk=name.id)
+                allocation_instance = Allocation.objects.get(pk=fund_allocation_id)
+
+                if allocation_instance.amount > amount:
+                    difference = allocation_instance.amount - amount
+                    fund_instance.amount += difference
+                    fund_instance.save()
+
+                elif allocation_instance.amount < amount:
+                    difference = amount - allocation_instance.amount
+                    fund_instance.amount -= difference
+                    fund_instance.save()
+
+                allocation_instance.amount = amount
+                allocation_instance.business_unit = business_unit
+                allocation_instance.save()
+
+                return Response({'message': 'Fund Allocation updated successfully'}, status=status.HTTP_200_OK)
+
+            except Fund.DoesNotExist or Allocation.DoesNotExist:
+                return Response({'message': 'Fund or Allocation not found'}, status=status.HTTP_404_NOT_FOUND)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 

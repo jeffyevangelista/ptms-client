@@ -9,4 +9,4 @@ class Allocation(models.Model):
     amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     def __str__(self):
-       return f'{self.business_unit.business_unit_name} Allocation'
+       return f'{self.business_unit.business_unit_name} - {self.name} Allocation'

@@ -17,9 +17,3 @@ class BusinessUnitInFund(models.Model):
     def __str__(self):
         return f'{self.fund_name} - {self.business_units} '
     
-class Return_fund(models.Model):
-    fund_name = models.ForeignKey(Fund, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=15, decimal_places=2)
-
-    def __str__(self):
-        return f'{self.fund_name} - {self.amount}'

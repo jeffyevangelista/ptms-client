@@ -1,6 +1,6 @@
 
 from rest_framework.viewsets import ModelViewSet
-from .serializers import fund_Serializer, businessUnitInFund_Serializer, ReturnFund_Serializer
+from .serializers import fund_Serializer, businessUnitInFund_Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -23,11 +23,7 @@ class BusinessUnitInFund_view(ModelViewSet):
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
     
-class ReturnFund_view(ModelViewSet):
-    serializer_class = ReturnFund_Serializer
 
-    def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.all()
     
 #Filter funds based on the user assigned in it
 class FundListView(APIView):
