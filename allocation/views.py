@@ -51,7 +51,7 @@ def create_fund_allocation(request):
 
 @api_view(['PUT'])
 @transaction.atomic
-def edit_fund_allocation(request,fund_allocation_id):
+def edit_fund_allocation(request, fund_allocation_id):
     if request.method == 'PUT':
         serializer = allocation_Serializer(data=request.data)
         if serializer.is_valid():
@@ -62,6 +62,17 @@ def edit_fund_allocation(request,fund_allocation_id):
             try:
                 fund_instance = Fund.objects.get(pk=name.id)
                 allocation_instance = Allocation.objects.get(pk=fund_allocation_id)
+
+                existing_allocation = Allocation.objects.filter(
+                    name=name,
+                    business_unit=business_unit
+                ).exclude(pk=fund_allocation_id).first()
+
+                if existing_allocation:
+                    return Response(
+                        {'message': 'Allocation for the specified fund and business unit already exists'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
                 if allocation_instance.amount > amount:
                     difference = allocation_instance.amount - amount
