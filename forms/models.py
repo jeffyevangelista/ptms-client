@@ -36,7 +36,7 @@ class RequestForm(models.Model):
     profit_center = models.CharField(max_length=50)
     covered_from = models.DateField(default=timezone.now)
     covered_to = models.DateField()
-    date_requested = models.DateField()
+    date_requested = models.DateField(auto_now_add=True)
 
     amount = models.DecimalField(max_digits=15, decimal_places=2)
     status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='Pending',null=True)
