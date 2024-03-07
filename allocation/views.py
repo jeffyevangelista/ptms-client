@@ -105,12 +105,10 @@ class AllocationListView(APIView):
             user_fund_name = user.fund_set.first().name if user.fund_set.exists() else None
 
             allocations = Allocation.objects.filter(name__name=user_fund_name)
-            print(allocations)
 
             serializer = allocation_Serializer(allocations, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Allocation_List_Per_BU_View(APIView):
@@ -137,5 +135,4 @@ class Allocation_List_Per_BU_View(APIView):
             else:
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)

@@ -37,7 +37,6 @@ class FundListView(APIView):
             serializer = fund_Serializer(funds, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 #Filter business unit based on the fund

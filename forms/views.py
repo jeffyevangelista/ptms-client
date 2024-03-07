@@ -23,15 +23,6 @@ class RequestForm_view(ModelViewSet):
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
     
-    def destroy(self, request, *args, **kwargs):
-        instance = self.get_object()
-        if instance.fund_allocation:
-            instance.fund_allocation.amount += instance.amount
-            instance.fund_allocation.save()
-
-        self.perform_destroy(instance)
-
-        return Response(status=status.HTTP_204_NO_CONTENT)
     
     
 
@@ -63,19 +54,18 @@ class LatestVoucherView(View):
 @transaction.atomic
 def create_request_form(request):
     if request.method == 'POST':
-        print("Data received from frontend:", request.data)
         serializer = RequestForm_Serializer(data=request.data)
-        print("Data received from frontend:",serializer)
         
         if serializer.is_valid():
             request_form = serializer.save()
 
-            if request_form.fund_allocation:
+            should_deduct_amount = False
+
+            if request_form.fund_allocation  and should_deduct_amount:
                 allocation = request_form.fund_allocation
                 allocation.amount -= request_form.amount
                 allocation.save()
             
-            print("RequestForm created successfully:", request_form)
 
             return Response({'message': 'RequestForm created successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -86,7 +76,6 @@ def create_request_form(request):
 def edit_request_form(request, pk):
     try:
         request_form = RequestForm.objects.get(pk=pk)
-
     except RequestForm.DoesNotExist:
         return Response({'message': 'RequestForm not found'}, status=status.HTTP_404_NOT_FOUND)
 
@@ -94,27 +83,8 @@ def edit_request_form(request, pk):
         serializer = editRequestForm_Serializer(request_form, data=request.data)
 
         if serializer.is_valid():
-            request_form_copy = copy.copy(request_form)
-
             serializer.update(request_form, serializer.validated_data)
 
-            if request_form.amount < request_form_copy.amount:
-                difference = request_form_copy.amount - request_form.amount
-
-                if request_form.fund_allocation:
-                    allocation = request_form.fund_allocation
-                    allocation.amount += difference
-                    allocation.save()
-                    
-            elif request_form.amount > request_form_copy.amount:
-                difference = request_form.amount - request_form_copy.amount 
-
-                if request_form.fund_allocation:
-                    allocation = request_form.fund_allocation
-                    allocation.amount -= difference
-                    allocation.save()
-
-            print("Received data in the backend:", serializer.validated_data)
 
             return Response({'message': 'RequestForm edited successfully'}, status=status.HTTP_200_OK)
 
@@ -135,10 +105,8 @@ class PurchaseRequestListView(APIView):
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print("User does not have a business unit.")
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 class PurchaseRequest_Reviewer_List_View(APIView):
@@ -150,15 +118,12 @@ class PurchaseRequest_Reviewer_List_View(APIView):
             user_business_unit = user.business_unit
             
             if user_business_unit:
-                # Filter based on the condition where reviewed_by is null
                 request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by=None)
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print("User does not have a business unit.")
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
 
@@ -176,11 +141,36 @@ class PurchaseRequest_GeneralManager_List_View(APIView):
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                print("User does not have a business unit.")
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+@api_view(['PUT'])
+@transaction.atomic
+def Fund_Custodian_Release_Amount(request, pk):
+    try:
+        request_form = RequestForm.objects.get(pk=pk)
+    except RequestForm.DoesNotExist:
+        return Response({'message': 'RequestForm not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    if request.method == 'PUT':
+        serializer = UpdateRequestForm_Serializer(request_form, data=request.data)
+
+        if serializer.is_valid():
+            request_form_copy = serializer.save()
+
+
+            if request_form.fund_allocation:
+                allocation = request_form.fund_allocation
+                allocation.amount -= request_form.amount
+                allocation.save()
+
+
+            return Response({'message': 'RequestForm edited successfully'}, status=status.HTTP_200_OK)
+
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
         
 class Cost_Controller_To_Be_Release_View(APIView):
     def get(self, request, *args, **kwargs):
@@ -204,7 +194,6 @@ class Cost_Controller_To_Be_Release_View(APIView):
             serializer = RequestForm_Serializer(request_form, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Cost_Controller_Release_View(APIView):
@@ -230,7 +219,6 @@ class Cost_Controller_Release_View(APIView):
             serializer = RequestForm_Serializer(request_form, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 class Cost_Controller_Liquidated_View(APIView):
@@ -256,7 +244,6 @@ class Cost_Controller_Liquidated_View(APIView):
             serializer = RequestForm_Serializer(request_form, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -283,7 +270,7 @@ class Fund_Custodian_Replenish_View(APIView):
             serializer = RequestForm_Serializer(request_form, many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
         else:
-            print("User is not authenticated.")
+
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 @api_view(['POST'])
@@ -312,7 +299,6 @@ def refund_function(request):
 
             return Response({'message': 'Refund processed successfully'}, status=status.HTTP_201_CREATED)
 
-        print(f"Serializer Errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     
 @api_view(['POST'])
@@ -340,8 +326,6 @@ def excess_function(request):
             excess_instance.voucher_no.save()
 
             return Response({'message': 'Excess processed successfully'}, status=status.HTTP_201_CREATED)
-
-        print(f"Serializer Errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
@@ -359,13 +343,11 @@ def replenish_function(request, pk):
         if serializer.is_valid():
             request_form = serializer.save()
 
-            print(f"RequestForm updated: {request_form}")
             
             update_allocation_amount(request_form)
             
             return Response({'message': 'Purchase request updated successfully'}, status=status.HTTP_200_OK)
 
-        print(f"Serializer Errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({'message': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
@@ -392,7 +374,6 @@ class PurchaseRequest_Decline_List_View(APIView):
             else:
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
 #Encoder Decline
@@ -411,7 +392,6 @@ class PurchaseRequest_Approved_List_View(APIView):
             else:
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-            print("User is not authenticated.")
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
 @api_view(['PUT'])
@@ -427,19 +407,38 @@ def decline_return_fund_function(request, pk):
         if serializer.is_valid():
             request_form = serializer.save()
 
-            print(f"RequestForm updated: {request_form}")
-            
-            return_allocation_amount(request_form)
             
             return Response({'message': 'Purchase request updated successfully'}, status=status.HTTP_200_OK)
 
-        print(f"Serializer Errors: {serializer.errors}")
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return Response({'message': 'Invalid request method'}, status=status.HTTP_405_METHOD_NOT_ALLOWED)
 
-def return_allocation_amount(request_form):
-    if request_form.fund_allocation:
-        allocation = request_form.fund_allocation
-        allocation.amount += request_form.amount
-        allocation.save()
+
+
+@api_view(['GET'])
+def admin_released(request):
+    try:
+        queryset = RequestForm.objects.filter(status='Released')
+        serializer = UpdateRequestForm_Serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+def admin_liquidated(request):
+    try:
+        queryset = RequestForm.objects.filter(status='Liquidated')
+        serializer = UpdateRequestForm_Serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+@api_view(['GET'])
+def admin_replenish(request):
+    try:
+        queryset = RequestForm.objects.filter(status='Replenish')
+        serializer = UpdateRequestForm_Serializer(queryset, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    except Exception as e:
+        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

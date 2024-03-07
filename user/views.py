@@ -28,9 +28,7 @@ class LoginAPIView(APIView):
             password = serializer.validated_data['password']
 
             user = authenticate(request, email=email, password=password)
-            print(f"User: {user}")
             if user is not None:
-                print("User is authenticated and logging in.")
                 login(request, user)
 
                 token, created = Token.objects.get_or_create(user=user)

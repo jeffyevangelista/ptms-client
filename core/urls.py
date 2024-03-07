@@ -35,7 +35,11 @@ from forms.views import (
     replenish_function,
     decline_return_fund_function,
     PurchaseRequest_Decline_List_View,
-    PurchaseRequest_Approved_List_View
+    PurchaseRequest_Approved_List_View,
+    Fund_Custodian_Release_Amount,
+    admin_released,
+    admin_liquidated,
+    admin_replenish
 )
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation
@@ -66,6 +70,7 @@ urlpatterns = [
         #General Manager
         path('api/PurchaseRequest_GeneralManager_List_View/', PurchaseRequest_GeneralManager_List_View.as_view(), name='PurchaseRequest_GeneralManager_List_View'),
         #Fund Custodian
+        path('api/Fund_Custodian_Release_Amount/<int:pk>/', Fund_Custodian_Release_Amount, name='Fund_Custodian_Release_Amount'),
         path('api/Cost_Controller_Release_View/', Cost_Controller_Release_View.as_view(), name='Cost_Controller_Release_View'),
         path('api/Cost_Controller_To_Be_Release_View/', Cost_Controller_To_Be_Release_View.as_view(), name='Cost_Controller_To_Be_Release_View'),
         path('api/Cost_Controller_Liquidated_View/', Cost_Controller_Liquidated_View.as_view(), name='Cost_Controller_Liquidated_View'),
@@ -94,6 +99,9 @@ urlpatterns = [
         path('api/Allocation_List_Per_BU_View/', Allocation_List_Per_BU_View.as_view(), name='Allocation_List_Per_BU_View'),
         path('api/edit_fund_allocation/<int:fund_allocation_id>/', edit_fund_allocation, name='edit_fund_allocation'),
 
-        
+#admin
+        path('api/admin_released/',  admin_released, name='admin_released'),
+        path('api/admin_liquidated/',  admin_liquidated, name='admin_liquidated'),
+        path('api/admin_replenish/',  admin_replenish, name='admin_replenish'),
     
 ]

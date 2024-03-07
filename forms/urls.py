@@ -5,7 +5,9 @@ from .views import (
     RequestForm_view , PurchaseRequestListView,PurchaseRequest_Reviewer_List_View,PurchaseRequest_GeneralManager_List_View,Item_view,
      Cost_Controller_Release_View,Cost_Controller_To_Be_Release_View,Refund_view,Excess_view, Cost_Controller_Liquidated_View,PurchaseRequest_Decline_List_View,
      PurchaseRequest_Approved_List_View,Fund_Custodian_Replenish_View,
-     edit_request_form,refund_function,excess_function,replenish_function,decline_return_fund_function
+     edit_request_form,refund_function,excess_function,replenish_function,decline_return_fund_function,Fund_Custodian_Release_Amount,admin_released,
+     admin_liquidated, admin_replenish
+    
 )
 
 urlpatterns = [
@@ -55,7 +57,8 @@ urlpatterns = [
   path('api/PurchaseRequest_Reviewer_List_View/', PurchaseRequest_Reviewer_List_View.as_view(), name='PurchaseRequest_Reviewer_List_View'),
 #General Manager
   path('api/PurchaseRequest_GeneralManager_List_View/', PurchaseRequest_GeneralManager_List_View.as_view(), name='PurchaseRequest_GeneralManager_List_View'),
-#Fund Custodian
+#Fund Custodian Fund_Custodian_Release_Amount
+  path('api/Fund_Custodian_Release_Amount/<int:pk>/', Fund_Custodian_Release_Amount, name='Fund_Custodian_Release_Amount'),
   path('api/Cost_Controller_Release_View/', Cost_Controller_Release_View.as_view(), name='Cost_Controller_Release_View'),
   path('api/Cost_Controller_To_Be_Release_View/', Cost_Controller_To_Be_Release_View.as_view(), name='Cost_Controller_To_Be_Release_View'),
   path('api/Cost_Controller_Liquidated_View/', Cost_Controller_Liquidated_View.as_view(), name='Cost_Controller_Liquidated_View'),
@@ -71,9 +74,12 @@ urlpatterns = [
   path('api/PurchaseRequest_Approved_List_View/',  PurchaseRequest_Approved_List_View.as_view(), name='PurchaseRequest_Approved_List_View'),
   
   
-
-
   #Cost Controller/General Manager 
   path('api/decline_return_fund_function/<int:pk>/',  decline_return_fund_function, name='decline_return_fund_function'),
+
+  #admin
+  path('api/admin_released/',  admin_released, name='admin_released'),
+  path('api/admin_liquidated/',  admin_liquidated, name='admin_liquidated'),
+  path('api/admin_replenish/',  admin_replenish, name='admin_replenish'),
  
 ]
