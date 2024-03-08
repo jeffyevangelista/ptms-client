@@ -72,6 +72,7 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
     release = serializers.CharField(source='release_by.first_name', read_only=True)
     release_last = serializers.CharField(source='release_by.last_name', read_only=True)
     items = Item_Serializer(many=True, read_only=True)
+    fund_name = serializers.SerializerMethodField()
 
     class Meta:
         model = RequestForm
@@ -103,6 +104,7 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'with_receipt',
             'with_out_receipt',
             'items',
+            'fund_name',
         )
 
     def create(self, validated_data):
@@ -114,6 +116,10 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             Item.objects.create(request_form=request_form, **item_data)
 
         return request_form
+    
+    def get_fund_name(self, obj):
+        fund_name = obj.fund_allocation.name.name
+        return fund_name
     
 class editRequestForm_Serializer(serializers.ModelSerializer):
     business_unit_name = serializers.CharField(source='business_unit.business_unit_name', read_only=True)

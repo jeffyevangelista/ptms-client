@@ -39,7 +39,8 @@ from forms.views import (
     Fund_Custodian_Release_Amount,
     admin_released,
     admin_liquidated,
-    admin_replenish
+    admin_replenish,
+    PurchaseRequestApprovedListView
 )
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation
@@ -63,6 +64,7 @@ urlpatterns = [
         path('api/edit_request_form/<int:pk>/', edit_request_form, name='edit_request_form'),
         path('api/latest_voucher/', LatestVoucherView.as_view(), name='latest_voucher'),
         path('api/PurchaseRequestListView/', PurchaseRequestListView.as_view(), name='PurchaseRequestListView'),
+         path('api/PurchaseRequestApprovedListView/', PurchaseRequestApprovedListView.as_view(), name='PurchaseRequestApprovedListView'),
 
         #Cost Controller
         path('api/PurchaseRequest_Reviewer_List_View/', PurchaseRequest_Reviewer_List_View.as_view(), name='PurchaseRequest_Reviewer_List_View'),
