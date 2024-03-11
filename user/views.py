@@ -12,6 +12,7 @@ from rest_framework.authtoken.models import Token
 from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from django.contrib import messages
+from .models import User
 #api for crud
 class User_view(ModelViewSet):
     serializer_class = user_Serializer
@@ -61,3 +62,12 @@ class LoginAPIView(APIView):
 def current_user(request):
     serializer = user_Serializer(request.user) 
     return Response(serializer.data)
+
+
+@api_view(['GET'])
+def custodian_users(request):
+    if request.method == 'GET':
+        custodian_users = User.objects.filter(role='Custodian')
+        serializer = user_Serializer(custodian_users, many=True)
+
+        return Response(serializer.data)

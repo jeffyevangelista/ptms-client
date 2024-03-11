@@ -24,7 +24,6 @@ class RequestForm_view(ModelViewSet):
         return self.serializer_class.Meta.model.objects.all()
     
     
-    
 
 class Refund_view(ModelViewSet):
     serializer_class = Refund_Serializer

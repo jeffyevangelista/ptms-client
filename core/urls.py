@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.conf import settings  
 from django.conf.urls.static import static 
 from django.urls import path,include
-from user.views import LoginAPIView,current_user
+from user.views import LoginAPIView,current_user,custodian_users
 from forms.views import (
     LatestVoucherView,
     PurchaseRequestListView,
@@ -57,6 +57,7 @@ urlpatterns = [
 #User
         path('api/login/', LoginAPIView.as_view(), name='login'),
         path('api/current_user/', current_user, name='current_user'),
+            path('api/custodian_users/',custodian_users, name='custodian_users'),
 
 #Purchase Request
         #Encoder
