@@ -280,7 +280,7 @@ class Fund_Custodian_Replenish_View(APIView):
                 business_unit__in=business_units_in_funds.values('business_units'),
                 approved_by__isnull=False,
                 release_by__isnull=False,
-                status='Replenish'
+                status='Replenished'
             )
 
             serializer = RequestForm_Serializer(request_form, many=True)
@@ -453,8 +453,73 @@ def admin_liquidated(request):
 @api_view(['GET'])
 def admin_replenish(request):
     try:
-        queryset = RequestForm.objects.filter(status='Replenish')
+        queryset = RequestForm.objects.filter(status='Replenished')
         serializer = UpdateRequestForm_Serializer(queryset, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
+
+
+class Fund_Custodian_Pie_Chart(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            user_funds = Fund.objects.filter(user=user)
+
+            business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
+
+            allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
+
+            request_form = RequestForm.objects.filter(
+                fund_allocation__in=allocations,
+                business_unit__in=business_units_in_funds.values('business_units'),
+                approved_by__isnull=False,
+                release_by__isnull=False
+            )
+
+            serializer = RequestForm_Serializer(request_form, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+
+class Encoder_Liquidated_List_View(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            user_business_unit = user.business_unit
+            
+            if user_business_unit:
+
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, status='Liquidated' )
+                serializer = RequestForm_Serializer(request_form, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+
+class Encoder_Replenish_List_View(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            user_business_unit = user.business_unit
+            
+            if user_business_unit:
+
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, status='Replenished' )
+                serializer = RequestForm_Serializer(request_form, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)

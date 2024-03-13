@@ -29,7 +29,7 @@ class User(AbstractBaseUser, PermissionsMixin):
         ('Encoder', 'Encoder'),
         ('Cost Controller', 'Cost Controller'),
         ('General Manager', 'General Manager'),
-        ('Custodian', 'Custodian'),
+        ('Fund Custodian', 'Fund Custodian'),
         ('Admin', 'Admin'),
     ]
 

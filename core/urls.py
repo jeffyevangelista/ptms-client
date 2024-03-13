@@ -40,10 +40,13 @@ from forms.views import (
     admin_released,
     admin_liquidated,
     admin_replenish,
-    PurchaseRequestApprovedListView
+    PurchaseRequestApprovedListView,
+    Fund_Custodian_Pie_Chart,
+    Encoder_Liquidated_List_View,
+    Encoder_Replenish_List_View
 )
 from fund.views import FundListView,Fund_Comapny_View
-from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation
+from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation,Allocation_Log_Per_BU_View
 urlpatterns = [
     path('admin/', admin.site.urls),
      path('api/', include([
@@ -78,12 +81,18 @@ urlpatterns = [
         path('api/Cost_Controller_To_Be_Release_View/', Cost_Controller_To_Be_Release_View.as_view(), name='Cost_Controller_To_Be_Release_View'),
         path('api/Cost_Controller_Liquidated_View/', Cost_Controller_Liquidated_View.as_view(), name='Cost_Controller_Liquidated_View'),
         path('api/Fund_Custodian_Replenish_View/',  Fund_Custodian_Replenish_View.as_view(), name='Fund_Custodian_Replenish_View'),
+        path('api/Fund_Custodian_Pie_Chart/',  Fund_Custodian_Pie_Chart.as_view(), name='Fund_Custodian_Pie_Chart'),
+
 
 
         #Encoder List
         path('api/PurchaseRequest_Decline_List_View/',  PurchaseRequest_Decline_List_View.as_view(), name='PurchaseRequest_Decline_List_View'),
         #Encoder Approved List
         path('api/PurchaseRequest_Approved_List_View/',  PurchaseRequest_Approved_List_View.as_view(), name='PurchaseRequest_Approved_List_View'),
+        #Encoder Liquidated List
+        path('api/Encoder_Liquidated_List_View/',  Encoder_Liquidated_List_View.as_view(), name='Encoder_Liquidated_List_View'),
+        #Encoder Replenish List
+        path('api/Encoder_Replenish_List_View/',  Encoder_Replenish_List_View.as_view(), name='Encoder_Replenish_List_View'),
 
         path('api/refund_function/', refund_function , name='refund_function'),
         path('api/excess_function/', excess_function , name='excess_function'),
@@ -100,6 +109,7 @@ urlpatterns = [
         path('api/AllocationListView/', AllocationListView.as_view(), name='AllocationListView'),
         path('api/create_fund_allocation/', create_fund_allocation, name='create_fund_allocation'),
         path('api/Allocation_List_Per_BU_View/', Allocation_List_Per_BU_View.as_view(), name='Allocation_List_Per_BU_View'),
+        path('api/Allocation_Log_Per_BU_View/', Allocation_Log_Per_BU_View.as_view(), name='Allocation_Log_Per_BU_View'),
         path('api/edit_fund_allocation/<int:fund_allocation_id>/', edit_fund_allocation, name='edit_fund_allocation'),
 
 #admin

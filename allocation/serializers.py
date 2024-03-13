@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Allocation
+from .models import Allocation, AllocationLog
 
 
 class allocation_Serializer(serializers.ModelSerializer):
@@ -20,4 +20,21 @@ class allocation_Serializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Amount must be greater than zero.")
         return value
             
-    
+
+class allocationLog_Serializer(serializers.ModelSerializer):
+    fund_name =  serializers.CharField(source='allocation.name', read_only=True)
+    business_name =  serializers.CharField(source='allocation.business_unit', read_only=True)
+    amount_allocated =  serializers.CharField(source='allocation.amount', read_only=True)
+    class Meta:
+        model = AllocationLog
+        fields = (
+            'id',
+            'name',
+            'amount',
+            'fund_name',
+            'allocation',
+            'business_unit',
+            'business_name',
+            'amount_allocated',
+            'created_at',
+        )
