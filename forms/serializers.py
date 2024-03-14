@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from .models import RequestForm
 from .models import Refund ,Excess, Item
+
 class Item_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Item
-        fields = ('descriptions', 'quantity', 'uom', 'price')
+        fields = ('descriptions', 'quantity', 'uom', 'price','item_total_amount')
         
 class RequestForm_Serializer(serializers.ModelSerializer):
     business_unit_name = serializers.CharField(source='business_unit.business_unit_name', read_only=True)
@@ -48,6 +49,10 @@ class RequestForm_Serializer(serializers.ModelSerializer):
             'with_receipt',
             'with_out_receipt',
             'items',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
         )
 
     def create(self, validated_data):
@@ -105,6 +110,10 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'with_out_receipt',
             'items',
             'fund_name',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
         )
 
     def create(self, validated_data):
@@ -132,7 +141,6 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
     release = serializers.CharField(source='release_by.first_name', read_only=True)
     release_last = serializers.CharField(source='release_by.last_name', read_only=True)
     items = Item_Serializer(many=True)
-
     class Meta:
         model = RequestForm
         fields = (
@@ -163,6 +171,10 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
             'with_receipt',
             'with_out_receipt',
             'items',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
         )
 
     def update(self, instance, validated_data):

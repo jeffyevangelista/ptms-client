@@ -117,7 +117,7 @@ class PurchaseRequestApprovedListView(APIView):
             user_business_unit = user.business_unit
             
             if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False, status='Released' )
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False, status='Approved' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -204,7 +204,8 @@ class Cost_Controller_To_Be_Release_View(APIView):
                 fund_allocation__in=allocations,
                 business_unit__in=business_units_in_funds.values('business_units'),
                 approved_by__isnull=False,
-                release_by__isnull=True
+                release_by__isnull=True,
+                status='Approved'
             )
 
             serializer = RequestForm_Serializer(request_form, many=True)
@@ -384,7 +385,7 @@ class PurchaseRequest_Decline_List_View(APIView):
             user_business_unit = user.business_unit
             
             if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False, status='Declined' )
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,  status__in=['Declined', 'Cancel'] )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -523,3 +524,5 @@ class Encoder_Replenish_List_View(APIView):
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+        

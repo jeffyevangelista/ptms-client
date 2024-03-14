@@ -27,6 +27,7 @@ class RequestForm(models.Model):
         ('Liquidated', 'Liquidated'),
         ('Declined', 'Declined'),
         ('Replenished', 'Replenished'),
+        ('Cancel', 'Cancel'),
     ]
 
     voucher_no = models.CharField(max_length=15,default=generate_reference_code, unique=True)
@@ -42,9 +43,13 @@ class RequestForm(models.Model):
     status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='Pending',null=True)
 
     encoded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='encoder' ,null=True)
+    encoded_date = models.DateField(auto_now_add=True,null=True)
     reviewed_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cost_controller' ,null=True)
+    reviewed_date = models.DateField(blank=True, null=True)
     approved_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='general_manager',null=True)
+    approved_date = models.DateField(blank=True, null=True)
     release_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='custodian',null=True)
+    released_date = models.DateField(blank=True, null=True) 
 
     with_receipt = models.DecimalField(max_digits=15, decimal_places=0, default=None, null=True)
     with_out_receipt = models.DecimalField(max_digits=15, decimal_places=0, default=None, null=True)
@@ -58,6 +63,7 @@ class Item(models.Model):
     quantity = models.IntegerField()
     uom = models.CharField(max_length=50)
     price = models.IntegerField()
+    item_total_amount = models.DecimalField(max_digits=15, decimal_places=0,default=None, null=True)
     
 class Refund(models.Model):
     voucher_no = models.ForeignKey(RequestForm, on_delete=models.CASCADE)
