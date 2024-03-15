@@ -30,8 +30,6 @@ from forms.views import (
     Fund_Custodian_Replenish_View,
     edit_request_form,
     create_request_form,
-    refund_function,
-    excess_function,
     replenish_function,
     decline_return_fund_function,
     PurchaseRequest_Decline_List_View,
@@ -43,7 +41,8 @@ from forms.views import (
     PurchaseRequestApprovedListView,
     Fund_Custodian_Pie_Chart,
     Encoder_Liquidated_List_View,
-    Encoder_Replenish_List_View
+    Encoder_Replenish_List_View,
+    excess_or_refund_function
 )
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation,Allocation_Log_Per_BU_View
@@ -94,9 +93,9 @@ urlpatterns = [
         #Encoder Replenish List
         path('api/Encoder_Replenish_List_View/',  Encoder_Replenish_List_View.as_view(), name='Encoder_Replenish_List_View'),
 
-        path('api/refund_function/', refund_function , name='refund_function'),
-        path('api/excess_function/', excess_function , name='excess_function'),
         path('api/replenish_function/<int:pk>/', replenish_function , name='replenish_function'),
+        #excess or refund
+        path('api/excess_or_refund_function/<int:pk>/', excess_or_refund_function , name='excess_or_refund_function'),
 
         #Cost Controller/General Manager 
        path('api/decline_return_fund_function/<int:pk>/',  decline_return_fund_function, name='decline_return_fund_function'),

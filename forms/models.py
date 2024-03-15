@@ -41,6 +41,8 @@ class RequestForm(models.Model):
 
     amount = models.DecimalField(max_digits=15, decimal_places=0)
     status = models.CharField( max_length=20, choices=STATUS_CHOICES, default='Pending',null=True)
+    excess = models.DecimalField(max_digits=15, decimal_places=0, null=True)
+    refund = models.DecimalField(max_digits=15, decimal_places=0, null=True)
 
     encoded_by = models.ForeignKey(User, on_delete=models.CASCADE, related_name='encoder' ,null=True)
     encoded_date = models.DateField(auto_now_add=True,null=True)
@@ -65,21 +67,6 @@ class Item(models.Model):
     price = models.IntegerField()
     item_total_amount = models.DecimalField(max_digits=15, decimal_places=0,default=None, null=True)
     
-class Refund(models.Model):
-    voucher_no = models.ForeignKey(RequestForm, on_delete=models.CASCADE)
-    refund_amount = models.DecimalField(max_digits=15, decimal_places=0)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-
-    def __str__(self):
-         return f'{self.voucher_no} - {self.refund_amount} '
-    
-class Excess(models.Model):
-    voucher_no = models.ForeignKey(RequestForm, on_delete=models.CASCADE)
-    excess_amount = models.DecimalField(max_digits=15, decimal_places=0)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
-
-    def __str__(self):
-         return f'{self.voucher_no} - {self.excess_amount} '
     
 
 
