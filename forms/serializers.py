@@ -1,10 +1,11 @@
 from rest_framework import serializers
 from .models import RequestForm
-from .models import Refund ,Excess, Item
+from .models import Item
+
 class Item_Serializer(serializers.ModelSerializer):
     class Meta:
         model = Item
-        fields = ('descriptions', 'quantity', 'uom', 'price')
+        fields = ('descriptions', 'quantity', 'uom', 'price','item_total_amount')
         
 class RequestForm_Serializer(serializers.ModelSerializer):
     business_unit_name = serializers.CharField(source='business_unit.business_unit_name', read_only=True)
@@ -48,6 +49,12 @@ class RequestForm_Serializer(serializers.ModelSerializer):
             'with_receipt',
             'with_out_receipt',
             'items',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
+            'excess',
+            'refund',
         )
 
     def create(self, validated_data):
@@ -105,6 +112,12 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'with_out_receipt',
             'items',
             'fund_name',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
+            'excess',
+            'refund',
         )
 
     def create(self, validated_data):
@@ -132,7 +145,6 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
     release = serializers.CharField(source='release_by.first_name', read_only=True)
     release_last = serializers.CharField(source='release_by.last_name', read_only=True)
     items = Item_Serializer(many=True)
-
     class Meta:
         model = RequestForm
         fields = (
@@ -163,6 +175,12 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
             'with_receipt',
             'with_out_receipt',
             'items',
+            'encoded_date',
+            'reviewed_date',
+            'approved_date',
+            'released_date',
+            'excess',
+            'refund',
         )
 
     def update(self, instance, validated_data):
@@ -189,32 +207,4 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
 
         instance.save()
         return instance
-
-class Refund_Serializer(serializers.ModelSerializer):
-    available_amount =  serializers.CharField(source='voucher_no.amount', read_only=True)
-    business_unit =  serializers.CharField(source='voucher_no.amount', read_only=True)
-    class Meta:
-        model = Refund
-        fields = (
-                'id',
-                'voucher_no',
-                'refund_amount',
-                'available_amount',
-                'user',
-                'business_unit',
-
-        )
-    
-class Excess_Serializer(serializers.ModelSerializer):
-    available_amount =  serializers.CharField(source='voucher_no.amount', read_only=True)
-    class Meta:
-        model = Excess
-        fields = (
-                'id',
-                'voucher_no',
-                'excess_amount',
-                'available_amount',
-                'user',
-
-        )
 

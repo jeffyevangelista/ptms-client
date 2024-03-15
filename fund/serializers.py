@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Fund, BusinessUnitInFund 
+from .models import Fund, BusinessUnitInFund ,FundLog
 
 class fund_Serializer(serializers.ModelSerializer):
     first_name =  serializers.CharField(source='user.first_name', read_only=True)
@@ -15,6 +15,22 @@ class fund_Serializer(serializers.ModelSerializer):
             'last_name',
 
         )
+
+class fundLog_Serializer(serializers.ModelSerializer):
+    fund_name =  serializers.CharField(source='fund.name', read_only=True)
+    class Meta:
+        model = FundLog
+        fields = (
+            'id',
+            'name',
+            'amount',
+            'user',
+            'timestamp',
+            'fund',
+            'fund_name',
+
+        )
+
 
 class businessUnitInFund_Serializer(serializers.ModelSerializer):
     name =  serializers.CharField(source='fund_name.name', read_only=True)

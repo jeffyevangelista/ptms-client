@@ -67,7 +67,7 @@ def current_user(request):
 @api_view(['GET'])
 def custodian_users(request):
     if request.method == 'GET':
-        custodian_users = User.objects.filter(role='Custodian')
+        custodian_users = User.objects.filter(role='Fund Custodian')
         serializer = user_Serializer(custodian_users, many=True)
 
         return Response(serializer.data)

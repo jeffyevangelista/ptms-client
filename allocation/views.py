@@ -1,9 +1,9 @@
 
 from rest_framework.viewsets import ModelViewSet
-from .serializers import allocation_Serializer
+from .serializers import allocation_Serializer,allocationLog_Serializer
 from fund.models import Fund
 from django.db import transaction
-from .models import Allocation
+from .models import Allocation,AllocationLog
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from rest_framework.response import Response
@@ -25,7 +25,11 @@ class Allocation_view(ModelViewSet):
 
         return Response(status=status.HTTP_204_NO_CONTENT)
     
+class AllocationLog_view(ModelViewSet):
+    serializer_class = allocationLog_Serializer
 
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.all()
 
 @api_view(['POST'])
 @transaction.atomic
@@ -36,6 +40,9 @@ def create_fund_allocation(request):
             name = serializer.validated_data['name']
             business_unit = serializer.validated_data['business_unit']
             amount = serializer.validated_data['amount']
+
+            if Allocation.objects.filter(name=name, business_unit=business_unit).exists():
+                return Response({'message': 'Business unit already allocated for this fund.'}, status=status.HTTP_400_BAD_REQUEST)
 
             fund_instance = Fund.objects.get(pk=name.id)
             fund_instance.amount -= amount
@@ -136,3 +143,36 @@ class Allocation_List_Per_BU_View(APIView):
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+
+
+class Allocation_Log_Per_BU_View(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            # Get the fund associated with the user
+            fund_for_user = Fund.objects.filter(user=user).first()
+
+            if fund_for_user:
+                # Filter allocation logs related to the fund
+                allocation_logs = AllocationLog.objects.filter(allocation__name=fund_for_user)
+
+                allocation_logs_data = []
+
+                for log in allocation_logs:
+                    log_data = {
+                        'id': log.id,
+                        'business_unit_name': log.business_unit,
+                        'allocation_name': log.name,
+                        'amount': log.amount
+                    }
+                    allocation_logs_data.append(log_data)
+                return Response(allocation_logs_data, status=status.HTTP_200_OK)
+            else:
+                error_message = "No fund associated with the user."
+                return Response({"error": error_message}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            error_message = "User is not authenticated."
+            return Response({"error": error_message}, status=status.HTTP_401_UNAUTHORIZED)
+

@@ -1,6 +1,6 @@
 
 from rest_framework.viewsets import ModelViewSet
-from .serializers import fund_Serializer, businessUnitInFund_Serializer
+from .serializers import fund_Serializer, businessUnitInFund_Serializer,fundLog_Serializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
@@ -16,12 +16,21 @@ class Fund_view(ModelViewSet):
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
     
+
+class FundLog_view(ModelViewSet):
+    serializer_class = fundLog_Serializer
+
+    def get_queryset(self):
+        return self.serializer_class.Meta.model.objects.all()
+    
 #api for crud
 class BusinessUnitInFund_view(ModelViewSet):
     serializer_class = businessUnitInFund_Serializer
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
+    
+    
     
 
     

@@ -149,6 +149,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # or the URL where your React app is hosted
 ]
 
+TIME_ZONE = 'Asia/Manila'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
