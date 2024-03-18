@@ -104,7 +104,24 @@ class PurchaseRequestApprovedListView(APIView):
             user_business_unit = user.business_unit
             
             if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False, status='Approved' )
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,approved_by__isnull=False, status='Approved' )
+                serializer = RequestForm_Serializer(request_form, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+class PurchaseRequestReleasedListView(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            user_business_unit = user.business_unit
+            
+            if user_business_unit:
+                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,approved_by__isnull=False, status='Released' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
