@@ -42,7 +42,8 @@ from forms.views import (
     Fund_Custodian_Pie_Chart,
     Encoder_Liquidated_List_View,
     Encoder_Replenish_List_View,
-    excess_or_refund_function
+    excess_or_refund_function,
+    PurchaseRequestReleasedListView
 )
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation,Allocation_Log_Per_BU_View
@@ -67,7 +68,8 @@ urlpatterns = [
         path('api/edit_request_form/<int:pk>/', edit_request_form, name='edit_request_form'),
         path('api/latest_voucher/', LatestVoucherView.as_view(), name='latest_voucher'),
         path('api/PurchaseRequestListView/', PurchaseRequestListView.as_view(), name='PurchaseRequestListView'),
-         path('api/PurchaseRequestApprovedListView/', PurchaseRequestApprovedListView.as_view(), name='PurchaseRequestApprovedListView'),
+        path('api/PurchaseRequestApprovedListView/', PurchaseRequestApprovedListView.as_view(), name='PurchaseRequestApprovedListView'),
+        path('api/PurchaseRequestReleasedListView/',  PurchaseRequestReleasedListView.as_view(), name='PurchaseRequestReleasedListView'),
 
         #Cost Controller
         path('api/PurchaseRequest_Reviewer_List_View/', PurchaseRequest_Reviewer_List_View.as_view(), name='PurchaseRequest_Reviewer_List_View'),
