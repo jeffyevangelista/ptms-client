@@ -192,19 +192,27 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
         instance.date_requested = validated_data.get('date_requested', instance.date_requested)
         instance.amount = validated_data.get('amount', instance.amount)
         instance.status = validated_data.get('status', instance.status)
+        instance.encoded_by = validated_data.get('encoded_by', instance.encoded_by)
+        instance.business_unit = validated_data.get('business_unit', instance.business_unit)
+        instance.fund_allocation = validated_data.get('fund_allocation', instance.fund_allocation)
+        instance.encoded_date = validated_data.get('encoded_date', instance.encoded_date)
+
 
         items_data = validated_data.get('items', [])
+        existing_items = instance.items.all()
         for item_data in items_data:
-            item_voucher_no = item_data.get('voucher_no')
-            if item_voucher_no:
-                item_instance = instance.items.filter(voucher_no=item_voucher_no).first()
-                if item_instance:
-                    item_instance.descriptions = item_data.get('descriptions', item_instance.descriptions)
-                    item_instance.quantity = item_data.get('quantity', item_instance.quantity)
-                    item_instance.uom = item_data.get('uom', item_instance.uom)
-                    item_instance.price = item_data.get('price', item_instance.price)
-                    item_instance.save()
+            item_id = item_data.get('id', None)
+            if item_id:
+                item = existing_items.filter(pk=item_id).first()
+                if item:
+                    item.descriptions = item_data.get('descriptions', item.descriptions)
+                    item.quantity = item_data.get('quantity', item.quantity)
+                    item.uom = item_data.get('uom', item.uom)
+                    item.price = item_data.get('price', item.price)
+                    item.item_total_amount = item_data.get('item_total_amount', item.item_total_amount)
+                    item.save()
 
         instance.save()
         return instance
+
 
