@@ -15,7 +15,7 @@ from fund.models import Fund, BusinessUnitInFund
 from allocation.models import Allocation
 from django.db import transaction
 import copy
-
+from .models import Item
 
 class RequestForm_view(ModelViewSet):
     serializer_class = UpdateRequestForm_Serializer
@@ -69,13 +69,15 @@ def edit_request_form(request, pk):
         serializer = editRequestForm_Serializer(request_form, data=request.data)
 
         if serializer.is_valid():
-            serializer.update(request_form, serializer.validated_data)
-
+            serializer.save()
+            items_data = request.data.get('items', [])
+            request_form.items.all().delete()
+            for item_data in items_data:
+                Item.objects.create(request_form=request_form, **item_data)
 
             return Response({'message': 'RequestForm edited successfully'}, status=status.HTTP_200_OK)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
 
     
 class PurchaseRequestListView(APIView):
@@ -94,6 +96,7 @@ class PurchaseRequestListView(APIView):
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
         
 class PurchaseRequestApprovedListView(APIView):
     def get(self, request, *args, **kwargs):
