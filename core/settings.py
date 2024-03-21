@@ -147,6 +147,7 @@ AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  # or the URL where your React app is hosted
+    'https://main--adorable-pothos-da5cd3.netlify.app',
 ]
 
 TIME_ZONE = 'Asia/Manila'
