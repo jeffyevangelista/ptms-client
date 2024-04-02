@@ -55,6 +55,8 @@ class RequestForm_Serializer(serializers.ModelSerializer):
             'released_date',
             'excess',
             'refund',
+            'received_by',
+            'received_date',
         )
 
     def create(self, validated_data):
@@ -118,6 +120,8 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'released_date',
             'excess',
             'refund',
+            'received_by',
+            'received_date',
         )
 
     def create(self, validated_data):
@@ -181,6 +185,8 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
             'released_date',
             'excess',
             'refund',
+            'received_by',
+            'received_date',
         )
 
     def update(self, instance, validated_data):

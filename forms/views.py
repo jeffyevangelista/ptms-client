@@ -32,9 +32,27 @@ class Item_view(ModelViewSet):
 
 class LatestVoucherView(View):
     def get(self, request, *args, **kwargs):
-        latest_voucher = RequestForm.objects.order_by('-id').first()
-        latest_voucher_number = latest_voucher.voucher_no if latest_voucher else None
-        return JsonResponse({'latest_voucher_number': latest_voucher_number})
+        all_vouchers = RequestForm.objects.order_by('-id')
+
+        vouchers_data = []
+
+        for voucher in all_vouchers:
+            voucher_data = {
+                'voucher_number': voucher.voucher_no,
+                'business_unit': {},
+            }
+
+            if voucher.business_unit:
+                voucher_data['business_unit'] = {
+                    'id': voucher.business_unit.id,
+                    'name': voucher.business_unit.business_unit_name,
+                }
+
+            vouchers_data.append(voucher_data)
+        response_data = {
+            'vouchers': vouchers_data
+        }
+        return JsonResponse(response_data)
 
 @api_view(['POST'])
 @transaction.atomic
@@ -511,8 +529,5 @@ def excess_or_refund_function(request, pk):
 
 def updated_allocation_amount(allocation, amount):
     if allocation:
-        print("Original allocation amount:", allocation.amount)
-        print("Amount to be added:", amount)
         allocation.amount += amount
         allocation.save()
-        print("Updated allocation amount:", allocation.amount)
