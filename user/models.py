@@ -17,6 +17,10 @@ class UserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
+        if extra_fields.get('role') == 'Admin':
+            extra_fields['is_staff'] = True
+            extra_fields['is_superuser'] = True
+
         return self.create_user(email, password, **extra_fields)
 
 
@@ -34,7 +38,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     ]
 
     role = models.CharField(max_length=20, choices=ROLES, default='Admin')
-    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.SET_NULL, null=True) # many to many relationship// if the user is custodian null the company
+    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.SET_NULL, null=True) #if the user is custodian null the company
     is_staff = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
 
