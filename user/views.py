@@ -13,14 +13,37 @@ from django.core.serializers.json import DjangoJSONEncoder
 from django.http import JsonResponse
 from django.contrib import messages
 from .models import User
+from django.contrib.auth import logout
+from django.views.decorators.csrf import csrf_exempt
+
 #api for crud
 class User_view(ModelViewSet):
+    queryset = User.objects.all()
     serializer_class = user_Serializer
 
-    def get_queryset(self):
-        return self.serializer_class.Meta.model.objects.all()
-    
 
+    def create(self, request, *args, **kwargs):
+        return super().create(request, *args, **kwargs)
+        
+    def update(self , request, *args, **kwargs):
+        instance = self.get_object()
+        password = request.data.get('password', None)
+        
+        serializer = self.get_object()
+        password = request.data.get('password', None)
+        
+        serializer = self.get_serializer(instance, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+        
+        if password:
+            instance.set_password(password)
+            instance.save()
+            
+        return Response(serializer.data)
+        
+
+    
 class LoginAPIView(APIView):
     def post(self, request, *args, **kwargs):
         serializer = LoginSerializer(data=request.data)
@@ -44,9 +67,9 @@ class LoginAPIView(APIView):
                     'id': user.id,
                 }
 
-                if user.business_unit:
+                if user.business_unit.exists():
                     response_data['business_unit'] = {
-                        'id': user.business_unit.id,
+                        'ids': list(user.business_unit.values_list('id', flat=True)),
                     }
                 else:
                     response_data['business_unit'] = None
@@ -71,3 +94,35 @@ def custodian_users(request):
         serializer = user_Serializer(custodian_users, many=True)
 
         return Response(serializer.data)
+    
+
+@api_view(['POST'])
+def check_business_unit_based_on_email(request):
+    email = request.data.get('email', None)
+    
+    if not email:
+        return Response({'error': 'Email is required'}, status=status.HTTP_400_BAD_REQUEST)
+    
+    try:
+        user = User.objects.get(email=email)
+        business_units = list(user.business_unit.values_list('business_unit_name', flat=True))
+        role = user.role
+        
+        return Response({'businessUnits': business_units,'role': role}, status=status.HTTP_200_OK)
+    except User.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+
+
+@csrf_exempt  # Use for debugging, not recommended for production
+def logout_view(request):
+    if request.method == 'POST':
+        try:
+            logout(request)
+            response = JsonResponse({"success": "Logged out"}, status=200)
+            # Clear session cookies
+            response.delete_cookie('sessionid')
+            response.delete_cookie('csrftoken')
+            return response
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=500)
+    return JsonResponse({"error": "Invalid request method"}, status=405)

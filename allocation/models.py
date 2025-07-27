@@ -7,7 +7,7 @@ from django.dispatch import receiver
 class Allocation(models.Model):
     name = models.ForeignKey(Fund, on_delete=models.CASCADE)
     business_unit = models.ForeignKey(BusinessUnit, on_delete=models.CASCADE)
-    amount = models.DecimalField(max_digits=15, decimal_places=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     def __str__(self):
        return f'{self.business_unit.business_unit_name} - {self.name} Allocation'
@@ -17,7 +17,7 @@ class AllocationLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     name = models.CharField(max_length=255)
     business_unit = models.CharField(max_length=255)
-    amount = models.DecimalField(max_digits=15, decimal_places=0)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
 
     def __str__(self):
         return f'{self.created_at}: {self.name} - {self.business_unit} Allocation'

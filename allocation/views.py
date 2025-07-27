@@ -124,19 +124,21 @@ class Allocation_List_Per_BU_View(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit 
+            user_business_units = user.business_unit.all()
 
-            if user_business_unit:
-                allocations = Allocation.objects.filter(business_unit=user_business_unit)
+            if user_business_units:
                 business_units_data = []
 
-                for allocation in allocations:
-                    business_unit_data = {
-                        'id': allocation.id,
-                        'business_unit_name': allocation.business_unit.business_unit_name,
-                        'allocated_amount': allocation.amount
-                    }
-                    business_units_data.append(business_unit_data)
+                for user_business_unit in user_business_units:
+                    allocations = Allocation.objects.filter(business_unit=user_business_unit)
+                    for allocation in allocations:
+                        business_unit_data = {
+                            'id': allocation.id,
+                            'business_unit_name': allocation.business_unit.business_unit_name,
+                            'business_unit_id': allocation.business_unit.id,
+                            'allocated_amount': allocation.amount
+                        }
+                        business_units_data.append(business_unit_data)
 
                 return Response(business_units_data, status=status.HTTP_200_OK)
             else:

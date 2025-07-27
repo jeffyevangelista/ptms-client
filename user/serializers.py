@@ -3,8 +3,13 @@ from .models import User
 from django.db import transaction
 
 class user_Serializer(serializers.ModelSerializer):
-    business_name =  serializers.CharField(source='business_unit.business_unit_name', read_only=True)
+    business_name = serializers.SerializerMethodField('get_business_unit_names')
+    def get_business_unit_names(self, instance):
+        business_unit = instance.business_unit.all()
+        business_unit_names = [bu.business_unit_name for bu in business_unit]
+        return business_unit_names
     password = serializers.CharField(write_only=True, min_length=8,required=False)
+    
     class Meta:
         model = User
         fields = (
@@ -22,27 +27,24 @@ class user_Serializer(serializers.ModelSerializer):
     @transaction.atomic
     def create(self, validated_data):
         password = validated_data.pop('password')
+        business_units_data = validated_data.pop('business_unit', [])  # Extracting business units data
         user = User.objects.create_user(**validated_data)
         user.set_password(password)
         user.save()
+        user.business_unit.set(business_units_data)  # Adding business units to the user
         return user
     
     @transaction.atomic
     def update(self, instance, validated_data):
-        # Handle password update only if provided
         password = validated_data.get('password', None)
         if password:
             instance.set_password(password)
+            instance.save()
+           
+        if 'password' not in validated_data:
+            validated_data['password'] = instance.password
 
-        # Update other fields
-        instance.first_name = validated_data.get('first_name', instance.first_name)
-        instance.last_name = validated_data.get('last_name', instance.last_name)
-        instance.email = validated_data.get('email', instance.email)
-        instance.role = validated_data.get('role', instance.role)
-        instance.business_unit = validated_data.get('business_unit', instance.business_unit)
-        instance.active = validated_data.get('active', instance.active)
-
-        instance.save()
+        instance = super().update(instance, validated_data)
         return instance
     
 

@@ -18,7 +18,7 @@ from django.contrib import admin
 from django.conf import settings  
 from django.conf.urls.static import static 
 from django.urls import path,include
-from user.views import LoginAPIView,current_user,custodian_users
+from user.views import LoginAPIView,current_user,custodian_users, check_business_unit_based_on_email, logout_view
 from forms.views import (
     LatestVoucherView,
     PurchaseRequestListView,
@@ -27,7 +27,6 @@ from forms.views import (
     Cost_Controller_Release_View,
     Cost_Controller_To_Be_Release_View,
     Cost_Controller_Liquidated_View,
-    Fund_Custodian_Replenish_View,
     edit_request_form,
     create_request_form,
     replenish_function,
@@ -37,13 +36,14 @@ from forms.views import (
     Fund_Custodian_Release_Amount,
     admin_released,
     admin_liquidated,
-    admin_replenish,
     PurchaseRequestApprovedListView,
     Fund_Custodian_Pie_Chart,
     Encoder_Liquidated_List_View,
-    Encoder_Replenish_List_View,
     excess_or_refund_function,
-    PurchaseRequestReleasedListView
+    PurchaseRequestReleasedListView,
+    Fund_Manager_Reports_View,
+    Fund_Manager_Daily_Reports_View,
+    Cost_Controller_Replenish_View
 )
 from fund.views import FundListView,Fund_Comapny_View
 from allocation.views import create_fund_allocation, AllocationListView,Allocation_List_Per_BU_View, edit_fund_allocation,Allocation_Log_Per_BU_View
@@ -60,7 +60,9 @@ urlpatterns = [
 #User
         path('api/login/', LoginAPIView.as_view(), name='login'),
         path('api/current_user/', current_user, name='current_user'),
-            path('api/custodian_users/',custodian_users, name='custodian_users'),
+        path('api/custodian_users/',custodian_users, name='custodian_users'),
+        path('api/check_business_unit_based_on_email/', check_business_unit_based_on_email, name='check_business_unit_based_on_email'),
+        path('logout/', logout_view, name='logout'),
 
 #Purchase Request
         #Encoder
@@ -76,13 +78,16 @@ urlpatterns = [
 
         #General Manager
         path('api/PurchaseRequest_GeneralManager_List_View/', PurchaseRequest_GeneralManager_List_View.as_view(), name='PurchaseRequest_GeneralManager_List_View'),
+       
         #Fund Custodian
         path('api/Fund_Custodian_Release_Amount/<int:pk>/', Fund_Custodian_Release_Amount, name='Fund_Custodian_Release_Amount'),
         path('api/Cost_Controller_Release_View/', Cost_Controller_Release_View.as_view(), name='Cost_Controller_Release_View'),
         path('api/Cost_Controller_To_Be_Release_View/', Cost_Controller_To_Be_Release_View.as_view(), name='Cost_Controller_To_Be_Release_View'),
         path('api/Cost_Controller_Liquidated_View/', Cost_Controller_Liquidated_View.as_view(), name='Cost_Controller_Liquidated_View'),
-        path('api/Fund_Custodian_Replenish_View/',  Fund_Custodian_Replenish_View.as_view(), name='Fund_Custodian_Replenish_View'),
+        path('api/Cost_Controller_Replenish_View/', Cost_Controller_Replenish_View.as_view(), name='Cost_Controller_Replenish_View'),
         path('api/Fund_Custodian_Pie_Chart/',  Fund_Custodian_Pie_Chart.as_view(), name='Fund_Custodian_Pie_Chart'),
+        path('api/Fund_Manager_Reports_View/',  Fund_Manager_Reports_View.as_view(), name='Fund_Manager_Reports_View'),
+        path('api/Fund_Manager_Daily_Reports_View/',  Fund_Manager_Daily_Reports_View.as_view(), name='Fund_Manager_Daily_Reports_View'), 
 
 
 
@@ -92,8 +97,6 @@ urlpatterns = [
         path('api/PurchaseRequest_Approved_List_View/',  PurchaseRequest_Approved_List_View.as_view(), name='PurchaseRequest_Approved_List_View'),
         #Encoder Liquidated List
         path('api/Encoder_Liquidated_List_View/',  Encoder_Liquidated_List_View.as_view(), name='Encoder_Liquidated_List_View'),
-        #Encoder Replenish List
-        path('api/Encoder_Replenish_List_View/',  Encoder_Replenish_List_View.as_view(), name='Encoder_Replenish_List_View'),
 
         path('api/replenish_function/<int:pk>/', replenish_function , name='replenish_function'),
         #excess or refund
@@ -116,6 +119,5 @@ urlpatterns = [
 #admin
         path('api/admin_released/',  admin_released, name='admin_released'),
         path('api/admin_liquidated/',  admin_liquidated, name='admin_liquidated'),
-        path('api/admin_replenish/',  admin_replenish, name='admin_replenish'),
     
 ]
