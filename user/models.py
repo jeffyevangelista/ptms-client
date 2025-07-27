@@ -8,14 +8,21 @@ class UserManager(BaseUserManager):
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
+        business_units = extra_fields.pop('business_unit', None)  # Extracting business units
         user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
+        if business_units:
+            user.business_unit.add(*business_units)  # Adding business units to the user
         return user
 
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+
+        if extra_fields.get('role') == 'Admin':
+            extra_fields['is_staff'] = True
+            extra_fields['is_superuser'] = True
 
         return self.create_user(email, password, **extra_fields)
 
@@ -26,15 +33,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     email = models.EmailField(unique=True, null=True)
 
     ROLES = [
-        ('Encoder', 'Encoder'),
         ('Cost Controller', 'Cost Controller'),
-        ('General Manager', 'General Manager'),
+        ('Finance Manager', 'Finance Manager'),
         ('Fund Custodian', 'Fund Custodian'),
         ('Admin', 'Admin'),
     ]
 
     role = models.CharField(max_length=20, choices=ROLES, default='Admin')
-    business_unit = models.ForeignKey(BusinessUnit, on_delete=models.SET_NULL, null=True) # many to many relationship// if the user is custodian null the company
+    business_unit = models.ManyToManyField(BusinessUnit, blank=True) #if the user is Fund Manager null the company
     is_staff = models.BooleanField(default=False)
     active = models.BooleanField(default=True)
 

@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-56)rq-g028f)iv%*1rvm4&t!@3v%##x2pi4dnwwqr%+i!8z#+m
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
+ALLOWED_HOST = ['*']
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS').split(",")
 
 
@@ -97,9 +97,9 @@ TEMPLATES = [
 DATABASES = {
      'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'TestForm',
-        'USER': 'postgres',
-        'PASSWORD': '1234',
+        'NAME': 'ptms',
+        'USER': 'ptms',
+        'PASSWORD': 'Surallah12#',
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -146,7 +146,10 @@ STATIC_URL = 'static/'
 AUTH_USER_MODEL = 'user.User'
 
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # or the URL where your React app is hosted
+    'https://ptms.classify.com.ph',
+    'http://ptms.classify.com.ph',
+    'http://localhost:3000',
+    'https://ptmsbackend.classify.com.ph', 
 ]
 
 TIME_ZONE = 'Asia/Manila'
@@ -157,3 +160,16 @@ TIME_ZONE = 'Asia/Manila'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_CREDENTIALS = True
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://ptmsbackend.classify.com.ph',
+    'https://ptms.classify.com.ph',
+    'http://127.0.0.1:8000',
+    'http://localhost:3000',
+]
+
+CSRF_COOKIE_SECURE = False
+SESSION_COOKIE_SECURE = False
+# SESSION_COOKIE_SECURE = True
+# SESSION_COOKIE_HTTPONLY = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

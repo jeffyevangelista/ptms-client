@@ -16,6 +16,9 @@ from allocation.models import Allocation
 from django.db import transaction
 import copy
 from .models import Item
+from allocation.models import AllocationLog
+from allocation.serializers import allocation_Serializer, allocationLog_Serializer
+from datetime import date
 
 class RequestForm_view(ModelViewSet):
     serializer_class = UpdateRequestForm_Serializer
@@ -55,24 +58,15 @@ class LatestVoucherView(View):
         return JsonResponse(response_data)
 
 @api_view(['POST'])
-@transaction.atomic
 def create_request_form(request):
     if request.method == 'POST':
         serializer = RequestForm_Serializer(data=request.data)
         
         if serializer.is_valid():
             request_form = serializer.save()
-
-            should_deduct_amount = False
-
-            if request_form.fund_allocation  and should_deduct_amount:
-                allocation = request_form.fund_allocation
-                allocation.amount -= request_form.amount
-                allocation.save()
-            
-
             return Response({'message': 'RequestForm created successfully'}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        return Response({'errors': serializer.errors}, status=status.HTTP_400_BAD_REQUEST)
     
 
 @api_view(['PUT'])
@@ -84,6 +78,7 @@ def edit_request_form(request, pk):
         return Response({'message': 'RequestForm not found'}, status=status.HTTP_404_NOT_FOUND)
 
     if request.method == 'PUT':
+
         serializer = editRequestForm_Serializer(request_form, data=request.data)
 
         if serializer.is_valid():
@@ -102,14 +97,15 @@ class PurchaseRequestListView(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
         user = Token.objects.get(key=received_token).user if received_token else None
-
+      
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=True,approved_by__isnull=True )
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids,approved_by__isnull=True )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
+            
             else:
                 return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
@@ -122,10 +118,10 @@ class PurchaseRequestApprovedListView(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,approved_by__isnull=False, status='Approved' )
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, reviewed_by__isnull=False,approved_by__isnull=False, status='Approved' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -139,10 +135,10 @@ class PurchaseRequestReleasedListView(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,approved_by__isnull=False, status='Released' )
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, reviewed_by__isnull=False,approved_by__isnull=False, status='Released' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -174,11 +170,11 @@ class PurchaseRequest_GeneralManager_List_View(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
+            if user_business_units_ids:
 
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False, approved_by=None,status='Approved' )
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, reviewed_by__isnull=False, approved_by=None,status='Approved' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -289,30 +285,21 @@ class Cost_Controller_Liquidated_View(APIView):
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
-class Fund_Custodian_Replenish_View(APIView):
+class Cost_Controller_Replenish_View(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_funds = Fund.objects.filter(user=user)
-
-            business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
-
-            allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
-
-            request_form = RequestForm.objects.filter(
-                fund_allocation__in=allocations,
-                business_unit__in=business_units_in_funds.values('business_units'),
-                approved_by__isnull=False,
-                release_by__isnull=False,
-                status='Replenished'
-            )
-
-            serializer = RequestForm_Serializer(request_form, many=True)
-            return Response(serializer.data, status=status.HTTP_200_OK)
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
+            
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, reviewed_by__isnull=False,approved_by__isnull=False, status='Replenished' )
+                serializer = RequestForm_Serializer(request_form, many=True)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+            else:
+                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
         else:
-
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
 
 
@@ -351,28 +338,28 @@ class PurchaseRequest_Decline_List_View(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,  status__in=['Declined', 'Cancel'] )
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, status__in=['Declined', 'Cancel'])
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
-                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
+                return Response({"error": "User does not have any associated business units."}, status=status.HTTP_400_BAD_REQUEST)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
-#Encoder Decline
+#Encoder Approved
 class PurchaseRequest_Approved_List_View(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, reviewed_by__isnull=False,approved_by__isnull=False, status='Approved' )
+            if user_business_units_ids:
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, reviewed_by__isnull=False, approved_by__isnull=False, status='Approved')
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -420,16 +407,6 @@ def admin_liquidated(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-@api_view(['GET'])
-def admin_replenish(request):
-    try:
-        queryset = RequestForm.objects.filter(status='Replenished')
-        serializer = UpdateRequestForm_Serializer(queryset, many=True)
-        return Response(serializer.data, status=status.HTTP_200_OK)
-    except Exception as e:
-        return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-    
-
 
 class Fund_Custodian_Pie_Chart(APIView):
     def get(self, request, *args, **kwargs):
@@ -463,11 +440,11 @@ class Encoder_Liquidated_List_View(APIView):
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            user_business_unit = user.business_unit
+            user_business_units_ids = user.business_unit.values_list('id', flat=True)
             
-            if user_business_unit:
+            if user_business_units_ids:
 
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, status='Liquidated' )
+                request_form = RequestForm.objects.filter(business_unit__in=user_business_units_ids, status='Liquidated' )
                 serializer = RequestForm_Serializer(request_form, many=True)
                 return Response(serializer.data, status=status.HTTP_200_OK)
             else:
@@ -475,24 +452,6 @@ class Encoder_Liquidated_List_View(APIView):
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
-
-class Encoder_Replenish_List_View(APIView):
-    def get(self, request, *args, **kwargs):
-        received_token = request.headers.get('Authorization', '').split(' ')[-1]
-        user = Token.objects.get(key=received_token).user if received_token else None
-
-        if user and user.is_authenticated:
-            user_business_unit = user.business_unit
-            
-            if user_business_unit:
-
-                request_form = RequestForm.objects.filter(business_unit=user_business_unit, status='Replenished' )
-                serializer = RequestForm_Serializer(request_form, many=True)
-                return Response(serializer.data, status=status.HTTP_200_OK)
-            else:
-                return Response({"error": "User does not have a business unit."}, status=status.HTTP_400_BAD_REQUEST)
-        else:
-            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
 
 @api_view(['PUT'])
@@ -508,7 +467,6 @@ def excess_or_refund_function(request, pk):
         if serializer.is_valid():
             request_form = serializer.save()
 
-            print("Request form before excess/refund processing:", request_form)
 
             if request_form.excess:
                 request_form.amount -= request_form.excess
@@ -520,7 +478,6 @@ def excess_or_refund_function(request, pk):
                 updated_allocation_amount(request_form.fund_allocation, -request_form.refund)
                 request_form.save()
             
-            print("Request form after excess/refund processing:", request_form)
 
             return Response({'message': 'Purchase request updated successfully'}, status=status.HTTP_200_OK)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
@@ -531,3 +488,81 @@ def updated_allocation_amount(allocation, amount):
     if allocation:
         allocation.amount += amount
         allocation.save()
+
+
+class Fund_Manager_Reports_View(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            # Get today's date
+            today_date = date.today()
+
+            user_funds = Fund.objects.filter(user=user)
+
+            business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
+
+            allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
+
+            allocation_logs = AllocationLog.objects.filter(allocation__in=allocations)
+
+            request_form = RequestForm.objects.filter(
+                fund_allocation__in=allocations,
+                business_unit__in=business_units_in_funds.values('business_units'),
+                status__in=['Released', 'Liquidated', 'Replenished'],
+            )
+                
+
+            request_form_serializer = RequestForm_Serializer(request_form, many=True)
+            allocation_serializer = allocation_Serializer(allocations, many=True)
+            allocation_log_serializer = allocationLog_Serializer(allocation_logs, many=True)
+
+            response_data = {
+                'request_forms': request_form_serializer.data,
+                'allocations': allocation_serializer.data,
+                'allocation_logs': allocation_log_serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
+        
+    
+class Fund_Manager_Daily_Reports_View(APIView):
+    def get(self, request, *args, **kwargs):
+        received_token = request.headers.get('Authorization', '').split(' ')[-1]
+        user = Token.objects.get(key=received_token).user if received_token else None
+
+        if user and user.is_authenticated:
+            # Get today's date
+            today_date = date.today()
+
+            user_funds = Fund.objects.filter(user=user)
+
+            business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
+
+            allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
+
+            allocation_logs = AllocationLog.objects.filter(allocation__in=allocations)
+
+            # Filter request forms based on release date
+            request_form = RequestForm.objects.filter(
+                fund_allocation__in=allocations,
+                business_unit__in=business_units_in_funds.values('business_units'),
+                status__in=['Released', 'Liquidated', 'Replenished'],
+            )
+
+            request_form_serializer = RequestForm_Serializer(request_form, many=True)
+            allocation_serializer = allocation_Serializer(allocations, many=True)
+            allocation_log_serializer = allocationLog_Serializer(allocation_logs, many=True)
+
+            response_data = {
+                'request_forms': request_form_serializer.data,
+                'allocations': allocation_serializer.data,
+                'allocation_logs': allocation_log_serializer.data
+            }
+
+            return Response(response_data, status=status.HTTP_200_OK)
+        else:
+            return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)

@@ -32,7 +32,7 @@ class RequestForm_Serializer(serializers.ModelSerializer):
             'amount',
             'business_unit',
             'status',
-            'encoded_by',
+            'requested_by',
             'reviewed_by',
             'approved_by',
             'release_by',
@@ -57,6 +57,8 @@ class RequestForm_Serializer(serializers.ModelSerializer):
             'refund',
             'received_by',
             'received_date',
+            'liquidated_date',
+            'replenish_date',
         )
 
     def create(self, validated_data):
@@ -96,7 +98,7 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'amount',
             'business_unit',
             'status',
-            'encoded_by',
+            'requested_by',
             'reviewed_by',
             'approved_by',
             'release_by',
@@ -122,6 +124,8 @@ class UpdateRequestForm_Serializer(serializers.ModelSerializer):
             'refund',
             'received_by',
             'received_date',
+            'liquidated_date',
+            'replenish_date',
         )
 
     def create(self, validated_data):
@@ -162,7 +166,7 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
             'amount',
             'business_unit',
             'status',
-            'encoded_by',
+            'requested_by',
             'reviewed_by',
             'approved_by',
             'release_by',
@@ -187,6 +191,8 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
             'refund',
             'received_by',
             'received_date',
+            'liquidated_date',
+            'replenish_date',
         )
 
     def update(self, instance, validated_data):
@@ -198,7 +204,7 @@ class editRequestForm_Serializer(serializers.ModelSerializer):
         instance.date_requested = validated_data.get('date_requested', instance.date_requested)
         instance.amount = validated_data.get('amount', instance.amount)
         instance.status = validated_data.get('status', instance.status)
-        instance.encoded_by = validated_data.get('encoded_by', instance.encoded_by)
+        instance.requested_by = validated_data.get('requested_by', instance.requested_by)
         instance.business_unit = validated_data.get('business_unit', instance.business_unit)
         instance.fund_allocation = validated_data.get('fund_allocation', instance.fund_allocation)
         instance.encoded_date = validated_data.get('encoded_date', instance.encoded_date)
