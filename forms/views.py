@@ -19,6 +19,8 @@ from .models import Item
 from allocation.models import AllocationLog
 from allocation.serializers import allocation_Serializer, allocationLog_Serializer
 from datetime import date
+from rest_framework.pagination import PageNumberPagination
+
 
 class RequestForm_view(ModelViewSet):
     serializer_class = UpdateRequestForm_Serializer
@@ -490,79 +492,152 @@ def updated_allocation_amount(allocation, amount):
         allocation.save()
 
 
+class StandardResultsSetPagination(PageNumberPagination):
+    page_size = 50
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
 class Fund_Manager_Reports_View(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            # Get today's date
-            today_date = date.today()
-
+            # Get date from request
+            date_param = request.query_params.get('date')
+            
+            # Use select_related to reduce database hits
             user_funds = Fund.objects.filter(user=user)
-
-            business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
-
-            allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
-
-            allocation_logs = AllocationLog.objects.filter(allocation__in=allocations)
-
-            request_form = RequestForm.objects.filter(
+            business_units_in_funds = BusinessUnitInFund.objects.filter(
+                fund_name__in=user_funds
+            ).select_related('business_units')
+            
+            business_unit_ids = business_units_in_funds.values_list('business_units', flat=True)
+            
+            # Get allocations with prefetch_related to optimize queries
+            allocations = Allocation.objects.filter(
+                business_unit__in=business_unit_ids
+            ).select_related('business_unit')
+            
+            # Base query for request forms
+            request_form_query = RequestForm.objects.filter(
                 fund_allocation__in=allocations,
-                business_unit__in=business_units_in_funds.values('business_units'),
+                business_unit__in=business_unit_ids,
                 status__in=['Released', 'Liquidated', 'Replenished'],
-            )
-                
-
-            request_form_serializer = RequestForm_Serializer(request_form, many=True)
-            allocation_serializer = allocation_Serializer(allocations, many=True)
+            ).select_related('business_unit', 'fund_allocation')
+            
+            # Apply date filtering if provided
+            if date_param:
+                try:
+                    from datetime import datetime, timedelta
+                    filter_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+                    
+                    # Create a combined query that gets all necessary records for the report
+                    # This is more efficient than fetching all records
+                    released_forms = request_form_query.filter(
+                        status='Released', 
+                        released_date=filter_date
+                    )
+                    liquidated_forms = request_form_query.filter(
+                        status='Liquidated', 
+                        liquidated_date=filter_date
+                    )
+                    replenished_forms = request_form_query.filter(
+                        status='Replenished', 
+                        replenish_date=filter_date
+                    )
+                    
+                    # Combine the querysets
+                    from django.db.models import Q
+                    filtered_request_form = released_forms | liquidated_forms | replenished_forms
+                    
+                except ValueError:
+                    filtered_request_form = request_form_query
+            else:
+                filtered_request_form = request_form_query
+            
+            # Get distinct business units from filtered request forms
+            business_units_in_request = filtered_request_form.values_list('business_unit', flat=True).distinct()
+            
+            # Only fetch allocations and logs for the business units in the request
+            filtered_allocations = allocations.filter(business_unit__in=business_units_in_request)
+            
+            # Use select_related to optimize the allocation logs query
+            allocation_logs = AllocationLog.objects.filter(
+                allocation__in=filtered_allocations
+            ).select_related('allocation', 'allocation__business_unit')
+            
+            # Serialize the data
+            request_form_serializer = RequestForm_Serializer(filtered_request_form, many=True)
+            allocation_serializer = allocation_Serializer(filtered_allocations, many=True)
             allocation_log_serializer = allocationLog_Serializer(allocation_logs, many=True)
-
+            
             response_data = {
                 'request_forms': request_form_serializer.data,
                 'allocations': allocation_serializer.data,
-                'allocation_logs': allocation_log_serializer.data
+                'allocation_logs': allocation_log_serializer.data,
             }
 
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
-        
-    
+
 class Fund_Manager_Daily_Reports_View(APIView):
+    pagination_class = StandardResultsSetPagination
+    
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
         user = Token.objects.get(key=received_token).user if received_token else None
 
         if user and user.is_authenticated:
-            # Get today's date
-            today_date = date.today()
-
+            # Get date from request
+            date_param = request.query_params.get('date')
+            
             user_funds = Fund.objects.filter(user=user)
 
             business_units_in_funds = BusinessUnitInFund.objects.filter(fund_name__in=user_funds)
 
             allocations = Allocation.objects.filter(business_unit__in=business_units_in_funds.values('business_units'))
 
-            allocation_logs = AllocationLog.objects.filter(allocation__in=allocations)
-
-            # Filter request forms based on release date
             request_form = RequestForm.objects.filter(
                 fund_allocation__in=allocations,
                 business_unit__in=business_units_in_funds.values('business_units'),
                 status__in=['Released', 'Liquidated', 'Replenished'],
             )
-
-            request_form_serializer = RequestForm_Serializer(request_form, many=True)
-            allocation_serializer = allocation_Serializer(allocations, many=True)
+            
+            # Apply date filtering based on released_date
+            if date_param:
+                try:
+                    from datetime import datetime
+                    filter_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+                    request_form = request_form.filter(released_date=filter_date)
+                except ValueError:
+                    pass
+            
+            # Apply pagination
+            paginator = self.pagination_class()
+            paginated_request_forms = paginator.paginate_queryset(request_form, request)
+            request_form_serializer = RequestForm_Serializer(paginated_request_forms, many=True)
+            
+            # For allocations and allocation_logs, we need to optimize
+            # Only fetch what's needed for the displayed business units
+            business_units_in_request = request_form.values_list('business_unit', flat=True).distinct()
+            
+            filtered_allocations = allocations.filter(business_unit__in=business_units_in_request)
+            allocation_logs = AllocationLog.objects.filter(allocation__in=filtered_allocations)
+            
+            allocation_serializer = allocation_Serializer(filtered_allocations, many=True)
             allocation_log_serializer = allocationLog_Serializer(allocation_logs, many=True)
-
+            
             response_data = {
                 'request_forms': request_form_serializer.data,
                 'allocations': allocation_serializer.data,
-                'allocation_logs': allocation_log_serializer.data
+                'allocation_logs': allocation_log_serializer.data,
+                'count': paginator.page.paginator.count,
+                'next': paginator.get_next_link(),
+                'previous': paginator.get_previous_link(),
             }
-
+            
             return Response(response_data, status=status.HTTP_200_OK)
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
