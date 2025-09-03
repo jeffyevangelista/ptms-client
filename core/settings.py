@@ -163,7 +163,7 @@ CORS_ALLOW_CREDENTIALS = True
 
 CSRF_TRUSTED_ORIGINS = [
     'https://ptmsbackend.classify.com.ph',
-    'https://ptms.classify.com.ph',
+    'http://ptms.classify.com.ph',
     'http://127.0.0.1:8000',
     'http://localhost:3000',
 ]
