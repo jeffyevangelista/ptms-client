@@ -1,7 +1,11 @@
-import React from "react";
+import { Outlet } from "react-router";
 
-const RootLayout = ({ children }: { children: React.ReactNode }) => {
-  return <div className="min-h-svh">{children}</div>;
+const RootLayout = () => {
+  return (
+    <div className="min-h-svh">
+      <Outlet />
+    </div>
+  );
 };
 
 export default RootLayout;

@@ -1,10 +1,13 @@
-import LoginForm from "@/features/auth/LoginForm";
-
+import { Route, Routes } from "react-router";
+import RootLayout from "./components/root-layout";
+import LoginPage from "./pages/auth/LoginPage";
 function App() {
   return (
-    <div className="flex w-full justify-center items-center h-screen">
-      <LoginForm />
-    </div>
+    <Routes>
+      <Route path="/" element={<RootLayout />}>
+        <Route index element={<LoginPage />} />
+      </Route>
+    </Routes>
   );
 }
 
