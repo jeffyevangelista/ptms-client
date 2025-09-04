@@ -11,7 +11,7 @@ export type DecodedToken = JwtPayload & {
     email: string;
     first_name: string;
     last_name: string;
-    roles: string[0];
+    roles: string[];
   };
   business_unit: {
     ids: number[];
