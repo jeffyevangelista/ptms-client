@@ -1,4 +1,4 @@
-import { API_URL } from "@/config/env.config";
+import { API_URL } from "@/lib/env";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
