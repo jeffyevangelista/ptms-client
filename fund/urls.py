@@ -1,25 +1,22 @@
 from django.urls import path,include
 
-from .views import (
-    Fund_view,FundListView,BusinessUnitInFund_view,Fund_Comapny_View,FundLog_view
-)
-
+from .views import *
 urlpatterns = [
-    path('',include([
-        path('', Fund_view.as_view({
+    path('api/',include([
+        path('Fund_view/', Fund_view.as_view({
             'get': 'list',
             'post': 'create',
         })),
-        path('<int:pk>/', Fund_view.as_view({
+        path('Fund_view/<int:pk>/', Fund_view.as_view({
             'put': 'update',
             'delete': 'destroy',
         })),
 
-        path('BusinessToFund/', BusinessUnitInFund_view.as_view({
+        path('FundCluster_view/', BusinessUnitInFund_view.as_view({
             'get': 'list',
             'post': 'create',
         })),
-        path('BusinessToFund/<int:pk>/', BusinessUnitInFund_view.as_view({
+        path('FundCluster_view/<int:pk>/', BusinessUnitInFund_view.as_view({
             'put': 'update',
             'delete': 'destroy',
         })),
@@ -34,6 +31,6 @@ urlpatterns = [
         })),
     ])),
 
-    path('api/FundListView/', FundListView.as_view(), name='FundListView'),
-    path('api/Fund_Comapny_View/', Fund_Comapny_View.as_view(), name='Fund_Comapny_View'),
+    path('api/Fund_per_user/', FundListView.as_view(), name='Fund_per_user'),
+    path('api/Fund_per_company/', Fund_Company_View.as_view(), name='Fund_per_company'),
 ]

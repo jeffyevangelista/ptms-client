@@ -9,21 +9,22 @@ from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from .models import RequestForm
 from rest_framework.views import APIView
-from django.middleware.csrf import get_token
 from rest_framework.authtoken.models import Token
 from fund.models import Fund, BusinessUnitInFund
 from allocation.models import Allocation
 from django.db import transaction
-import copy
 from .models import Item
 from allocation.models import AllocationLog
 from allocation.serializers import allocation_Serializer, allocationLog_Serializer
-from datetime import date
 from rest_framework.pagination import PageNumberPagination
-
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 class RequestForm_view(ModelViewSet):
     serializer_class = UpdateRequestForm_Serializer
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,) 
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
@@ -31,6 +32,8 @@ class RequestForm_view(ModelViewSet):
 
 class Item_view(ModelViewSet):
     serializer_class = Item_Serializer
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,) 
 
     def get_queryset(self):
         return self.serializer_class.Meta.model.objects.all()
@@ -400,6 +403,7 @@ def admin_released(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
+    
 @api_view(['GET'])
 def admin_liquidated(request):
     try:
@@ -409,7 +413,6 @@ def admin_liquidated(request):
     except Exception as e:
         return Response({'error': str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     
-
 class Fund_Custodian_Pie_Chart(APIView):
     def get(self, request, *args, **kwargs):
         received_token = request.headers.get('Authorization', '').split(' ')[-1]
@@ -434,7 +437,6 @@ class Fund_Custodian_Pie_Chart(APIView):
         else:
             return Response({"error": "User is not authenticated."}, status=status.HTTP_401_UNAUTHORIZED)
         
-
 
 class Encoder_Liquidated_List_View(APIView):
     def get(self, request, *args, **kwargs):

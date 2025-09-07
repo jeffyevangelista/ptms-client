@@ -1,23 +1,14 @@
 from django.urls import path,include
-from . import views
 from .views import LatestVoucherView,create_request_form
-from .views import (
-    RequestForm_view , PurchaseRequestListView,PurchaseRequest_Reviewer_List_View,PurchaseRequest_GeneralManager_List_View,Item_view,
-     Cost_Controller_Release_View,Cost_Controller_To_Be_Release_View, Cost_Controller_Liquidated_View,PurchaseRequest_Decline_List_View,
-     PurchaseRequest_Approved_List_View,PurchaseRequestApprovedListView,Fund_Custodian_Pie_Chart,Encoder_Liquidated_List_View,
-     PurchaseRequestReleasedListView,Fund_Manager_Reports_View,Fund_Manager_Daily_Reports_View,
-     edit_request_form,replenish_function,decline_return_fund_function,Fund_Custodian_Release_Amount,admin_released,
-     admin_liquidated,excess_or_refund_function, Cost_Controller_Replenish_View
-    
-)
+from .views import *
 
 urlpatterns = [
-    path('',include([
-        path('', RequestForm_view.as_view({
+    path('api/',include([
+        path('RequestForm_view/', RequestForm_view.as_view({
             'get': 'list',
             'post': 'create',
         })),
-        path('<int:pk>/', RequestForm_view.as_view({
+        path('RequestForm_view/<int:pk>/', RequestForm_view.as_view({
             'put': 'update',
             'delete': 'destroy',
         })),

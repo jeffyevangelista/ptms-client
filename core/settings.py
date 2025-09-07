@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/5.0/ref/settings/
 import os
 from pathlib import Path
 from dotenv import load_dotenv
+from datetime import timedelta
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -50,6 +51,9 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework.authtoken',
     'forms',
+    
+    "rest_framework_simplejwt",
+    "rest_framework_simplejwt.token_blacklist",
 
 ]
 
@@ -65,10 +69,15 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    'DEFAULT_AUTHENTICATION_CLASSES': [
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'user.authentication.JWTAuthentication',
         'rest_framework.authentication.TokenAuthentication',
         'rest_framework.authentication.SessionAuthentication',
-    ],
+        "rest_framework_simplejwt.authentication.JWTAuthentication",
+    ),
+    "DEFAULT_PERMISSION_CLASSES": (
+        "rest_framework.permissions.IsAuthenticated",
+    ),
 }
 
 ROOT_URLCONF = 'core.urls'
@@ -145,6 +154,9 @@ CORS_ALLOWED_ORIGINS = [
     'http://ptms.classify.com.ph',
     'http://localhost:3000',
     'https://ptmsbackend.classify.com.ph', 
+    'http://localhost:5173',
+    'http://172.16.30.236:9000',
+    
 ]
 
 TIME_ZONE = 'Asia/Manila'
@@ -161,10 +173,33 @@ CSRF_TRUSTED_ORIGINS = [
     'http://ptms.classify.com.ph',
     'http://127.0.0.1:8000',
     'http://localhost:3000',
+    'http://localhost:5173',
+    'http://172.16.30.236:9000',
 ]
 
+# Cookies / CSRF / CORS — adjust per environment
+CSRF_COOKIE_NAME = "csrftoken"
+
+REFRESH_COOKIE_SAMESITE = "None"
+REFRESH_COOKIE_SECURE = False
+
+CSRF_COOKIE_SAMESITE = "None"
 CSRF_COOKIE_SECURE = False
+
+SESSION_COOKIE_SAMESITE = "None"
 SESSION_COOKIE_SECURE = False
-# SESSION_COOKIE_SECURE = True
-# SESSION_COOKIE_HTTPONLY = True
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+# Ensure these are explicitly set for development
+CSRF_COOKIE_HTTPONLY = False  # Allow JS access for development
+SESSION_COOKIE_HTTPONLY = True
+
+SIMPLE_JWT = {
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=15),
+    "REFRESH_TOKEN_LIFETIME": timedelta(days=30),
+    "ROTATE_REFRESH_TOKENS": True,
+    "BLACKLIST_AFTER_ROTATION": True,
+    "ALGORITHM": "HS256",
+    # "SIGNING_KEY": SECRET_KEY,  # default is SECRET_KEY; keep it this way
+    "AUTH_HEADER_TYPES": ("Bearer",),
+    "TOKEN_OBTAIN_SERIALIZER": "user.serializers.MyTokenObtainPairSerializer",
+}

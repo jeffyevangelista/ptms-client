@@ -15,12 +15,16 @@ from django.contrib import messages
 from .models import User
 from django.contrib.auth import logout
 from django.views.decorators.csrf import csrf_exempt
+from rest_framework_simplejwt.authentication import JWTAuthentication
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated
 
 #api for crud
 class User_view(ModelViewSet):
     queryset = User.objects.all()
     serializer_class = user_Serializer
-
+    authentication_classes = (JWTAuthentication, SessionAuthentication)
+    permission_classes = (IsAuthenticated,) 
 
     def create(self, request, *args, **kwargs):
         return super().create(request, *args, **kwargs)
@@ -41,8 +45,6 @@ class User_view(ModelViewSet):
             instance.save()
             
         return Response(serializer.data)
-        
-
     
 class LoginAPIView(APIView):
     def post(self, request, *args, **kwargs):
@@ -92,7 +94,6 @@ def custodian_users(request):
     if request.method == 'GET':
         custodian_users = User.objects.filter(role='Fund Custodian')
         serializer = user_Serializer(custodian_users, many=True)
-
         return Response(serializer.data)
     
 

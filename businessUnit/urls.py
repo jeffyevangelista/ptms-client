@@ -6,12 +6,12 @@ from .views import (
 )
 
 urlpatterns = [
-    path('',include([
-        path('', BusinessUnit_view.as_view({
+    path('api/',include([
+        path('BusinessUnit_view/', BusinessUnit_view.as_view({
             'get': 'list',
             'post': 'create',
         })),
-        path('<int:pk>/', BusinessUnit_view.as_view({
+        path('BusinessUnit_view/<int:pk>/', BusinessUnit_view.as_view({
             'put': 'update',
             'delete': 'destroy',
         })),
