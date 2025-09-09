@@ -28,7 +28,7 @@ def _cookie_opts(max_age: int):
     }
 
 # ---------- SERIALIZERS ----------
-
+# All user Details in Access Token
 class MyTokenObtainPairSerializer(TokenObtainPairSerializer):
     """LOGIN: include nested `user` in access token."""
     @classmethod
@@ -86,7 +86,7 @@ class MinimalTokenRefreshSerializer(TokenRefreshSerializer):
         return data
 
 # ---------- VIEWS ----------
-
+# Selected User detials in Refresh Token
 class MinimalRefreshToken(RefreshToken):
     """Custom refresh token with only essential claims."""
     @classmethod
@@ -104,6 +104,7 @@ class MinimalRefreshToken(RefreshToken):
                 del token.payload[key]
         return token
 
+# Saved data to cookies upon login
 class CookieTokenObtainPairView(TokenObtainPairView):
     """POST {email, password} → JSON(access w/ user), Set-Cookie(refresh)."""
     permission_classes = [AllowAny]
@@ -135,7 +136,7 @@ class CookieTokenObtainPairView(TokenObtainPairView):
         )
         return resp
 
-
+# request access token via request
 class CookieTokenRefreshView(TokenRefreshView):
     """
     GET/POST (empty body)
@@ -187,7 +188,7 @@ class CookieTokenRefreshView(TokenRefreshView):
     def post(self, request, *args, **kwargs):
         return self._refresh_from_cookie(request)
 
-
+#clear access token upon logout
 class CookieLogoutView(APIView):
     """POST — clears cookies and (optionally) blacklists the refresh token."""
     def post(self, request):

@@ -155,6 +155,7 @@ CORS_ALLOWED_ORIGINS = [
     'http://localhost:3000',
     'https://ptmsbackend.classify.com.ph', 
     'http://localhost:5173',
+    'http://localhost:5174',
     'http://172.16.30.236:9000',
     
 ]
@@ -174,19 +175,21 @@ CSRF_TRUSTED_ORIGINS = [
     'http://127.0.0.1:8000',
     'http://localhost:3000',
     'http://localhost:5173',
+    'http://localhost:5174',
+    'http://127.0.0.1:7000',
     'http://172.16.30.236:9000',
 ]
 
 # Cookies / CSRF / CORS — adjust per environment
 CSRF_COOKIE_NAME = "csrftoken"
 
-REFRESH_COOKIE_SAMESITE = "None"
+REFRESH_COOKIE_SAMESITE = "Lax"
 REFRESH_COOKIE_SECURE = False
 
-CSRF_COOKIE_SAMESITE = "None"
+CSRF_COOKIE_SAMESITE = "Lax"
 CSRF_COOKIE_SECURE = False
 
-SESSION_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "Lax"
 SESSION_COOKIE_SECURE = False
 
 # Ensure these are explicitly set for development

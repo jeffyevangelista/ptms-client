@@ -7,7 +7,6 @@ from django.views import View
 from rest_framework import status
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from .models import RequestForm
 from rest_framework.views import APIView
 from rest_framework.authtoken.models import Token
 from fund.models import Fund, BusinessUnitInFund
@@ -20,6 +19,7 @@ from rest_framework.pagination import PageNumberPagination
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.authentication import SessionAuthentication
 from rest_framework.permissions import IsAuthenticated
+
 
 class RequestForm_view(ModelViewSet):
     serializer_class = UpdateRequestForm_Serializer
@@ -63,6 +63,7 @@ class LatestVoucherView(View):
         return JsonResponse(response_data)
 
 @api_view(['POST'])
+
 def create_request_form(request):
     if request.method == 'POST':
         serializer = RequestForm_Serializer(data=request.data)
@@ -76,6 +77,7 @@ def create_request_form(request):
 
 @api_view(['PUT'])
 @transaction.atomic
+
 def edit_request_form(request, pk):
     try:
         request_form = RequestForm.objects.get(pk=pk)
@@ -190,6 +192,7 @@ class PurchaseRequest_GeneralManager_List_View(APIView):
 
 @api_view(['PUT'])
 @transaction.atomic
+
 def Fund_Custodian_Release_Amount(request, pk):
     try:
         request_form = RequestForm.objects.get(pk=pk)
@@ -310,6 +313,7 @@ class Cost_Controller_Replenish_View(APIView):
 
 @api_view(['PUT'])
 @transaction.atomic
+
 def replenish_function(request, pk):
     if request.method == 'PUT':
         try:
@@ -374,6 +378,7 @@ class PurchaseRequest_Approved_List_View(APIView):
         
 @api_view(['PUT'])
 @transaction.atomic
+
 def decline_return_fund_function(request, pk):
     if request.method == 'PUT':
         try:
@@ -395,6 +400,7 @@ def decline_return_fund_function(request, pk):
 
 
 @api_view(['GET'])
+
 def admin_released(request):
     try:
         queryset = RequestForm.objects.filter(status='Released')
@@ -405,6 +411,7 @@ def admin_released(request):
     
     
 @api_view(['GET'])
+
 def admin_liquidated(request):
     try:
         queryset = RequestForm.objects.filter(status='Liquidated')
@@ -460,6 +467,7 @@ class Encoder_Liquidated_List_View(APIView):
 
 @api_view(['PUT'])
 @transaction.atomic
+
 def excess_or_refund_function(request, pk):
     if request.method == 'PUT':
         try:
