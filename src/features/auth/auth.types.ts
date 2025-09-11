@@ -23,3 +23,12 @@ export type AuthCredentials = {
   email: string;
   password: string;
 };
+
+export type UserType = {
+  id: string;
+  email: string;
+  first_name: string;
+  last_name: string;
+  roles: string[];
+  business_unit: null | string[];
+};

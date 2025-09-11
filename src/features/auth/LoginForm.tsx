@@ -8,13 +8,13 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useLoginMutation } from "./auth.hook";
+import { useLogin } from "./auth.hooks";
 import { useState } from "react";
 import { CircleX, Loader } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 const LoginForm = () => {
-  const { isPending, isError, error, mutateAsync: login } = useLoginMutation();
+  const { isPending, isError, error, mutateAsync: login } = useLogin();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -24,7 +24,7 @@ const LoginForm = () => {
   };
 
   return (
-    <Card className=" max-w-md w-full">
+    <Card className="w-full max-w-md">
       <CardHeader>
         <CardTitle>Login to your account</CardTitle>
         <CardDescription>

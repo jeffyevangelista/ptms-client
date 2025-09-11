@@ -1,5 +1,5 @@
 import api from "@/lib/axios";
-import type { AuthCredentials } from "./auth.type";
+import type { AuthCredentials, UserType } from "./auth.types";
 
 export const login = async ({
   credentials,
@@ -11,4 +11,12 @@ export const login = async ({
 
 export const refresh = async (): Promise<{ access: string }> => {
   return (await api.get("/auth/refresh/")).data;
+};
+
+export const logout = async () => {
+  return (await api.post("/auth/logout/")).data;
+};
+
+export const getUserDetails = async (): Promise<UserType> => {
+  return (await api.get("/auth/me/")).data;
 };

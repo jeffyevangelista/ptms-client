@@ -1,4 +1,4 @@
-import type { DecodedToken } from "@/features/auth/auth.type";
+import type { DecodedToken } from "@/features/auth/auth.types";
 import { jwtDecode } from "jwt-decode";
 import type { StateCreator } from "zustand";
 

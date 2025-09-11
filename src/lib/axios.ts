@@ -1,4 +1,4 @@
-import { refresh } from "@/features/auth/auth.api";
+import { refresh } from "@/features/auth/auth.apis";
 import { API_URL } from "@/lib/env";
 import useStore from "@/store";
 import axios from "axios";
@@ -11,29 +11,40 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use(
+  (config) => {
+    const { token } = useStore.getState();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config; // failed request, allowing it to be retried after handling the error.
+    const originalRequest = error.config;
     const { token, setCredentials, clearCredentials } = useStore.getState();
-    console.log(token);
-    
-    if (error.response?.status === 403 && !originalRequest._retry) {
-      originalRequest._retry = true; // marks this request as already retried
 
+    if (
+      (error.response?.status === 401 || error.response?.status === 403) &&
+      !originalRequest._retry
+    ) {
+      originalRequest._retry = true;
       if (token) {
         try {
           const refreshedToken = await refresh();
-
           setCredentials(refreshedToken.access);
           originalRequest.headers.Authorization = `Bearer ${refreshedToken.access}`;
-
-          // retry the original request
           return api(originalRequest);
-        } catch (error) {
-          console.log("Session expired");
+        } catch (err) {
+          console.log("Session expired, clearing credentials");
           clearCredentials();
-          return Promise.reject(error);
+          return Promise.reject(err);
         }
       }
     }
@@ -42,7 +53,7 @@ api.interceptors.response.use(
       error.message = error.response.data.message ?? error.message;
     }
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

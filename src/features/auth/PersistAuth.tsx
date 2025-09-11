@@ -1,41 +1,61 @@
 import useStore from "@/store";
-import { useEffect, useState } from "react";
-import { useRefreshMutation } from "./auth.hook";
+import { useEffect, useRef, useState } from "react";
+import { useRefresh } from "./auth.hooks";
 import { Loader } from "lucide-react";
-import { Outlet } from "react-router";
+import { Outlet, useNavigate } from "react-router";
+import { NODE_ENV } from "@/lib/env";
 
 const PersistAuth = () => {
-  const { token } = useStore();
-  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
-  const { mutateAsync: refresh, isPending } = useRefreshMutation();
+  const { token, clearCredentials, setCredentials } = useStore();
+  const { isPending, mutateAsync: refresh } = useRefresh();
+  const effectRan = useRef(false);
+  const [_, setTrueSuccess] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    let isMounted = true;
+    if (effectRan.current === true || NODE_ENV !== "development") {
+      const verifyRefreshToken = async () => {
+        console.log("verifying refresh token");
+        try {
+          const data = await refresh();
+          setCredentials(data.access);
+          setTrueSuccess(true);
+        } catch (error) {
+          console.log(error);
+          clearCredentials();
+          navigate("/");
+        }
+      };
 
-    const verifyRefreshToken = async () => {
-      console.log("verifying refresh token");
-      try {
-        await refresh();
-      } catch (err) {
-        console.log("Error verifying token", token);
-        // navigate("/", { replace: true }); // Redirect to login if refresh fails
-      } finally {
-        if (isMounted) setIsCheckingAuth(false); // Allow rendering to continue
-      }
-    };
-
-    if (!token) {
-      verifyRefreshToken();
-    } else {
-      setIsCheckingAuth(false);
+      if (!token) verifyRefreshToken();
     }
-
     return () => {
-      isMounted = false;
+      effectRan.current = true;
     };
   }, []);
 
-  if (isCheckingAuth || isPending)
+  // useEffect(() => {
+  // if (isError) {
+  //   console.log(error.message, isError);
+  //   clearCredentials();
+  //   navigate("/");
+  // }
+  // }, [isError, error]);
+
+  // if (isError) {
+  //   return (
+  //     <div>
+  //       <Alert className="mx-auto w-full max-w-screen-sm" variant="destructive">
+  //         <CircleX />
+  //         <AlertTitle>Error</AlertTitle>
+  //         <AlertDescription>{error.message}</AlertDescription>
+  //       </Alert>
+  //       <Button onClick={() => navigate("/")}>Login in again</Button>
+  //     </div>
+  //   );
+  // }
+
+  if (isPending)
     return (
       <div className="flex h-screen items-center">
         <Loader className="mx-auto animate-spin" />

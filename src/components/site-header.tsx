@@ -1,24 +1,16 @@
-import { SidebarIcon } from "lucide-react"
-
-import { SearchForm } from "@/components/search-form"
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb"
-import { Button } from "@/components/ui/button"
-import { Separator } from "@/components/ui/separator"
-import { useSidebar } from "@/components/ui/sidebar"
+import { Button } from "@/components/ui/button";
+import { useSidebar } from "@/components/ui/sidebar";
+import UserAvatar from "@/features/auth/UserAvatar";
+import { SidebarIcon } from "lucide-react";
+import { ModeToggle } from "./mode-toggle";
+import { Separator } from "./ui/separator";
 
 export function SiteHeader() {
-  const { toggleSidebar } = useSidebar()
+  const { toggleSidebar } = useSidebar();
 
   return (
     <header className="bg-background sticky top-0 z-50 flex w-full items-center border-b">
-      <div className="flex h-(--header-height) w-full items-center gap-2 px-4">
+      <div className="flex h-(--header-height) w-full items-center justify-between gap-2 px-4">
         <Button
           className="h-8 w-8"
           variant="ghost"
@@ -27,22 +19,13 @@ export function SiteHeader() {
         >
           <SidebarIcon />
         </Button>
-        <Separator orientation="vertical" className="mr-2 h-4" />
-        <Breadcrumb className="hidden sm:block">
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink href="#">
-                Building Your Application
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Data Fetching</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-        <SearchForm className="w-full sm:ml-auto sm:w-auto" />
+
+        <div className="flex items-center gap-1">
+          <ModeToggle />
+          <Separator orientation="vertical" className="h-auto w-1" />
+          <UserAvatar />
+        </div>
       </div>
     </header>
-  )
+  );
 }
